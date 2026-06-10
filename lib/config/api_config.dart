@@ -1,6 +1,6 @@
 class ApiConfig {
   static const String baseUrl = 'https://sigot-api.onrender.com';
-  static const Duration timeout = Duration(seconds: 15);
+  static const Duration timeout = Duration(seconds: 60);
 
   static const String login = '/api/auth/login';
   static const String recuperarPassword = '/api/auth/recuperar-password';

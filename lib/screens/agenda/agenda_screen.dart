@@ -34,9 +34,27 @@ class _AgendaScreenState extends State<AgendaScreen> {
         Padding(
           padding: const EdgeInsets.all(AppColors.paddingStd),
           child: TextField(
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               hintText: 'Buscar por cliente, vehículo...',
-              prefixIcon: Icon(Icons.search),
+              prefixIcon:
+                  const Icon(Icons.search, color: AppColors.textMuted),
+              filled: true,
+              fillColor: Colors.white,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(
+                    color: AppColors.primary, width: 1.5),
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16, vertical: 12),
             ),
             onChanged: provider.setSearch,
           ),

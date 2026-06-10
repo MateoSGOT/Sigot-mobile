@@ -26,53 +26,75 @@ class AgendaCard extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) => Card(
-        child: InkWell(
-          onTap: onTap,
+  Widget build(BuildContext context) => Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        decoration: BoxDecoration(
+          color: Colors.white,
           borderRadius: BorderRadius.circular(AppColors.cardRadius),
-          child: Padding(
-            padding: const EdgeInsets.all(AppColors.paddingStd),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+          border: const Border(
+            left: BorderSide(color: AppColors.primary, width: 3),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.06),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(AppColors.cardRadius),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: onTap,
+              child: Padding(
+                padding: const EdgeInsets.all(AppColors.paddingStd),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(Icons.calendar_today,
-                        size: 16, color: AppColors.primary),
-                    const SizedBox(width: 6),
-                    Text(
-                      '${_formatFecha(agenda.fechaAgendamiento)}  •  ${agenda.hora}',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
-                        color: AppColors.textPrimary,
-                      ),
+                    Row(
+                      children: [
+                        const Icon(Icons.calendar_today,
+                            size: 16, color: AppColors.primary),
+                        const SizedBox(width: 6),
+                        Text(
+                          '${_formatFecha(agenda.fechaAgendamiento)}  •  ${agenda.hora}',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Divider(height: 16),
+                    _row(Icons.person, agenda.cliente),
+                    const SizedBox(height: 6),
+                    _row(Icons.directions_car, agenda.vehiculo),
+                    if (agenda.descripcion != null &&
+                        agenda.descripcion!.isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      _row(Icons.description, agenda.descripcion!),
+                    ],
+                    const SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        EstadoBadge(
+                            estado: agenda.estado == 1
+                                ? 'Realizado'
+                                : 'Pendiente'),
+                        if (agenda.ordenId != null)
+                          TextButton(
+                            onPressed: onVerOrden,
+                            child: const Text('Ver orden →'),
+                          ),
+                      ],
                     ),
                   ],
                 ),
-                const Divider(height: 16),
-                _row(Icons.person, agenda.cliente),
-                const SizedBox(height: 6),
-                _row(Icons.directions_car, agenda.vehiculo),
-                if (agenda.descripcion != null &&
-                    agenda.descripcion!.isNotEmpty) ...[
-                  const SizedBox(height: 6),
-                  _row(Icons.description, agenda.descripcion!),
-                ],
-                const SizedBox(height: 10),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    EstadoBadge(
-                        estado: agenda.estado == 1 ? 'Realizado' : 'Pendiente'),
-                    if (agenda.ordenId != null)
-                      TextButton(
-                        onPressed: onVerOrden,
-                        child: const Text('Ver orden →'),
-                      ),
-                  ],
-                ),
-              ],
+              ),
             ),
           ),
         ),

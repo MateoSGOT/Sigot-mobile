@@ -56,14 +56,14 @@ class _HomeScreenState extends State<HomeScreen> {
           leading: Container(
             margin: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: AppColors.dark,
-              borderRadius: BorderRadius.circular(20),
+              color: AppColors.primary,
+              borderRadius: BorderRadius.circular(8),
             ),
             child: const Center(
               child: Text(
                 'S',
                 style: TextStyle(
-                  color: AppColors.accent,
+                  color: Colors.black,
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
                 ),

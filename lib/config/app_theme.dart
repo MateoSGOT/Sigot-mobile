@@ -33,18 +33,20 @@ class AppTheme {
         ),
         scaffoldBackgroundColor: AppColors.background,
         appBarTheme: const AppBarTheme(
-          backgroundColor: AppColors.primary,
+          backgroundColor: Color(0xFF111827),
           foregroundColor: Colors.white,
           elevation: 0,
           centerTitle: false,
+          iconTheme: IconThemeData(color: Colors.white),
+          actionsIconTheme: IconThemeData(color: Colors.white),
           titleTextStyle: TextStyle(
             color: Colors.white,
             fontSize: 18,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.bold,
           ),
         ),
         cardTheme: CardThemeData(
-          elevation: AppColors.cardElevation,
+          elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppColors.cardRadius),
           ),
@@ -84,10 +86,11 @@ class AppTheme {
           color: AppColors.primary,
         ),
         bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-          selectedItemColor: AppColors.primary,
-          unselectedItemColor: AppColors.textMuted,
-          backgroundColor: AppColors.surface,
+          selectedItemColor: Color(0xFFb5f23d),
+          unselectedItemColor: Color(0xFF6b7280),
+          backgroundColor: Color(0xFF111827),
           type: BottomNavigationBarType.fixed,
+          elevation: 8,
         ),
         chipTheme: ChipThemeData(
           selectedColor: AppColors.primary.withValues(alpha: 0.15),
@@ -96,6 +99,12 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
+        ),
+        floatingActionButtonTheme: const FloatingActionButtonThemeData(
+          backgroundColor: AppColors.primary,
+          foregroundColor: Colors.black,
+          elevation: 4,
+          shape: CircleBorder(),
         ),
       );
 }

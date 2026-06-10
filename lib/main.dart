@@ -6,8 +6,7 @@ import 'providers/auth_provider.dart';
 import 'providers/agenda_provider.dart';
 import 'providers/vehiculo_provider.dart';
 import 'providers/orden_provider.dart';
-import 'screens/login_screen.dart';
-import 'screens/home_screen.dart';
+import 'screens/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,42 +29,7 @@ class SigotApp extends StatelessWidget {
           title: 'SIGOT',
           debugShowCheckedModeBanner: false,
           theme: AppTheme.theme,
-          home: const _Splash(),
-        ),
-      );
-}
-
-class _Splash extends StatefulWidget {
-  const _Splash();
-
-  @override
-  State<_Splash> createState() => _SplashState();
-}
-
-class _SplashState extends State<_Splash> {
-  @override
-  void initState() {
-    super.initState();
-    _init();
-  }
-
-  Future<void> _init() async {
-    final auth = context.read<AuthProvider>();
-    await auth.checkAuth();
-    if (!mounted) return;
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
-        builder: (_) =>
-            auth.isAuthenticated ? const HomeScreen() : const LoginScreen(),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) => const Scaffold(
-        backgroundColor: AppColors.dark,
-        body: Center(
-          child: CircularProgressIndicator(color: AppColors.accent),
+          home: const SplashScreen(),
         ),
       );
 }
