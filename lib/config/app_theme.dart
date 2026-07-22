@@ -22,6 +22,60 @@ class AppColors {
   static const double buttonHeight = 48.0;
 }
 
+/// Escala de espaciado — base 4px (paridad con la web). Único set permitido.
+class AppSpacing {
+  static const double xs = 4;
+  static const double sm = 8;
+  static const double md = 12;
+  static const double lg = 16;
+  static const double xl = 24;
+  static const double xxl = 32;
+  static const double xxxl = 48;
+}
+
+/// Radios consolidados (paridad con la web). card = md 10.
+class AppRadius {
+  static const double sm = 6; // inputs, chips
+  static const double md = 10; // cards, botones, modales
+  static const double lg = 14; // superficies grandes
+  static const double full = 9999; // avatares, badges de estado (pill)
+}
+
+/// Escala tipográfica con jerarquía real (size / weight) — paridad con la web.
+class AppType {
+  static const TextStyle display = TextStyle(fontSize: 32, fontWeight: FontWeight.w700, height: 1.25);
+  static const TextStyle h1 = TextStyle(fontSize: 24, fontWeight: FontWeight.w700, height: 1.25);
+  static const TextStyle h2 = TextStyle(fontSize: 20, fontWeight: FontWeight.w600, height: 1.3);
+  static const TextStyle h3 = TextStyle(fontSize: 16, fontWeight: FontWeight.w600, height: 1.4);
+  static const TextStyle body = TextStyle(fontSize: 14, fontWeight: FontWeight.w400, height: 1.5);
+  static const TextStyle small = TextStyle(fontSize: 13, fontWeight: FontWeight.w400, height: 1.5);
+  static const TextStyle caption = TextStyle(fontSize: 12, fontWeight: FontWeight.w500, height: 1.4);
+}
+
+/// Sombras — 3 niveles con propósito (reposo / hover / modal).
+class AppShadows {
+  static const List<BoxShadow> sm = [
+    BoxShadow(color: Color(0x0F000000), blurRadius: 2, offset: Offset(0, 1)),
+    BoxShadow(color: Color(0x1A000000), blurRadius: 3, offset: Offset(0, 1)),
+  ];
+  static const List<BoxShadow> md = [
+    BoxShadow(color: Color(0x1A000000), blurRadius: 12, offset: Offset(0, 4)),
+    BoxShadow(color: Color(0x0F000000), blurRadius: 4, offset: Offset(0, 2)),
+  ];
+  static const List<BoxShadow> lg = [
+    BoxShadow(color: Color(0x29000000), blurRadius: 40, offset: Offset(0, 16)),
+    BoxShadow(color: Color(0x14000000), blurRadius: 12, offset: Offset(0, 4)),
+  ];
+}
+
+/// Duraciones y curva de animación — paridad con la web.
+class AppMotion {
+  static const Duration fast = Duration(milliseconds: 150);
+  static const Duration base = Duration(milliseconds: 200);
+  static const Duration slow = Duration(milliseconds: 300);
+  static const Cubic ease = Cubic(0.4, 0, 0.2, 1);
+}
+
 class AppTheme {
   static ThemeData get theme => ThemeData(
         useMaterial3: true,
