@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  static const Color primary = Color(0xFF16a34a);
+  static const Color primary = Color(0xFF16a34a); // base: bordes, iconos, texto sobre claro
+  // -strong para superficies sólidas con texto blanco <24px (AA-normal >=4.5:1)
+  static const Color primaryStrong = Color(0xFF15803d); // 5.02:1 con blanco
+  static const Color primaryStrongHover = Color(0xFF166534); // 7.13:1
+  static const Color infoStrong = Color(0xFF2563eb); // 5.17:1 con blanco
+  static const Color dangerStrong = Color(0xFFdc2626); // 4.83:1 con blanco
+  static const Color successStrong = Color(0xFF15803d);
   static const Color accent = Color(0xFFb5f23d);
   static const Color background = Color(0xFFf0f2f5);
   static const Color surface = Color(0xFFFFFFFF);
@@ -129,7 +135,8 @@ class AppTheme {
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primary,
+            // -strong: fondo sólido con texto blanco de 16px requiere AA-normal 4.5:1
+            backgroundColor: AppColors.primaryStrong,
             foregroundColor: Colors.white,
             minimumSize:
                 const Size(double.infinity, AppColors.buttonHeight),
