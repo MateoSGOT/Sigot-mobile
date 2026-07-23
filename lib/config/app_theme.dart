@@ -15,6 +15,15 @@ class AppColors {
   static const Color badgeRealizado = Color(0xFF16a34a);
   static const Color badgeInactivo = Color(0xFF6b7280);
 
+  // Foreground OBLIGATORIO por color (regla dura: nunca un color sin su par de texto).
+  // Paridad con la web: esmeralda→blanco, lima→oscuro, ámbar→oscuro, resto→blanco.
+  static const Color primaryOn = Color(0xFFFFFFFF); // sobre esmeralda
+  static const Color accentOn = Color(0xFF111827); // sobre lima (alta luminosidad → texto oscuro)
+  static const Color onBadgePendiente = Color(0xFF111827); // ámbar → texto oscuro
+  static const Color onBadgeEnProceso = Color(0xFFFFFFFF);
+  static const Color onBadgeRealizado = Color(0xFFFFFFFF);
+  static const Color onBadgeInactivo = Color(0xFFFFFFFF);
+
   static const double cardRadius = 12.0;
   static const double inputRadius = 8.0;
   static const double cardElevation = 2.0;
