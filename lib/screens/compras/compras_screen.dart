@@ -1,49 +1,41 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../config/app_theme.dart';
-import '../../providers/orden_provider.dart';
+import '../../providers/compra_provider.dart';
 import '../../services/api_service.dart';
-import '../../widgets/orden_card.dart';
+import '../../widgets/compra_card.dart';
 import '../../widgets/filter_chips.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/empty_state_widget.dart';
-import 'orden_detail_screen.dart';
+import 'compra_detail_screen.dart';
 
-class OrdenesScreen extends StatefulWidget {
-  const OrdenesScreen({super.key});
+class ComprasScreen extends StatefulWidget {
+  const ComprasScreen({super.key});
 
   @override
-  State<OrdenesScreen> createState() => _OrdenesScreenState();
+  State<ComprasScreen> createState() => _ComprasScreenState();
 }
 
-class _OrdenesScreenState extends State<OrdenesScreen> {
-  static const _filters = [
-    null,
-    'Pendiente',
-    'En proceso',
-    'Realizado',
-  ];
-  static const _labels = ['Todos', 'Pendiente', 'En proceso', 'Realizado'];
-
+class _ComprasScreenState extends State<ComprasScreen> {
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<OrdenProvider>().load();
+      context.read<CompraProvider>().load();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<OrdenProvider>();
+    final provider = context.watch<CompraProvider>();
 
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
           child: TextField(
             decoration: InputDecoration(
-              hintText: 'Buscar por vehículo, cliente...',
+              hintText: 'Buscar por proveedor, repuesto...',
               prefixIcon:
                   const Icon(Icons.search, color: AppColors.textMuted),
               filled: true,
@@ -58,20 +50,20 @@ class _OrdenesScreenState extends State<OrdenesScreen> {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(
-                    color: AppColors.primary, width: 1.5),
+                borderSide:
+                    const BorderSide(color: AppColors.primary, width: 1.5),
               ),
-              contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16, vertical: 12),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             ),
             onChanged: provider.setSearch,
           ),
         ),
         const SizedBox(height: 10),
         SigotFilterChips(
-          labels: _labels,
-          selected: _filters.indexOf(provider.filterEstado),
-          onSelected: (i) => provider.setFilter(_filters[i]),
+          labels: const ['Todas', 'Vigentes', 'Anuladas'],
+          selected: provider.filter.index,
+          onSelected: (i) => provider.setFilter(CompraFilter.values[i]),
         ),
         const SizedBox(height: 8),
         Expanded(child: _buildBody(provider)),
@@ -79,14 +71,14 @@ class _OrdenesScreenState extends State<OrdenesScreen> {
     );
   }
 
-  Widget _buildBody(OrdenProvider provider) {
+  Widget _buildBody(CompraProvider provider) {
     switch (provider.state) {
       case LoadState.loading:
         return const LoadingWidget();
       case LoadState.error:
         return EmptyStateWidget(
           icon: Icons.error_outline,
-          message: provider.error ?? 'Error al cargar órdenes',
+          message: provider.error ?? 'Error al cargar compras',
           onRetry: provider.load,
           retryLabel: 'Reintentar',
         );
@@ -95,22 +87,22 @@ class _OrdenesScreenState extends State<OrdenesScreen> {
         final items = provider.filtered;
         if (items.isEmpty) {
           return const EmptyStateWidget(
-            icon: Icons.assignment_outlined,
-            message: 'No hay órdenes registradas',
+            icon: Icons.shopping_cart_outlined,
+            message: 'No hay compras registradas',
           );
         }
         return RefreshIndicator(
           color: AppColors.primary,
           onRefresh: provider.load,
           child: ListView.builder(
+            padding: const EdgeInsets.only(bottom: 12),
             itemCount: items.length,
-            itemBuilder: (ctx, i) => OrdenCard(
-              orden: items[i],
+            itemBuilder: (ctx, i) => CompraCard(
+              compra: items[i],
               onTap: () => Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) =>
-                      OrdenDetailScreen(idOrden: items[i].idOrden),
+                  builder: (_) => CompraDetailScreen(compra: items[i]),
                 ),
               ),
             ),

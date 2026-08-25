@@ -37,6 +37,54 @@ class AppColors {
   static const double buttonHeight = 48.0;
 }
 
+/// Marca alineada con la WEB (sidebar/login). El refresh navy→esmeralda del
+/// frontend reemplazó la lima por el verde #4ade80: éste es el acento de marca
+/// en móvil (splash, login, header y submenú), en paridad con la web.
+class AppBrand {
+  // Degradado del sidebar de la web: azul marino → teal → esmeralda profundo.
+  static const Color navyDeep = Color(0xFF0E1A2C);
+  static const Color tealDeep = Color(0xFF0D2E2A);
+  static const Color emeraldDeep = Color(0xFF0A4735);
+
+  static const Color green = Color(0xFF4ADE80); // acento de marca (web)
+  static const Color mint = Color(0xFFEAFFF2); // paso claro del wordmark
+
+  // Superficie del panel de formulario del login web (blanco).
+  static const Color inputBg = Color(0xFFF8F9FA);
+
+  /// Degradado de marca (sidebar web) — orientado en diagonal para superficies
+  /// grandes (splash/login/header).
+  static const LinearGradient brand = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [navyDeep, tealDeep, emeraldDeep],
+    stops: [0.0, 0.52, 1.0],
+  );
+
+  /// Degradado horizontal exacto del sidebar (navy izq → esmeralda der).
+  static const LinearGradient sidebar = LinearGradient(
+    begin: Alignment.centerLeft,
+    end: Alignment.centerRight,
+    colors: [navyDeep, tealDeep, emeraldDeep],
+    stops: [0.0, 0.52, 1.0],
+  );
+
+  /// Wordmark SIGOT: blanco → menta → verde (idéntico al `.sidebar__logo-text`).
+  static const LinearGradient wordmark = LinearGradient(
+    begin: Alignment.centerLeft,
+    end: Alignment.centerRight,
+    colors: [Color(0xFFFFFFFF), mint, green],
+    stops: [0.0, 0.46, 1.0],
+  );
+
+  /// Botón sólido esmeralda del login web (`#15803d → #166534`, texto blanco).
+  static const LinearGradient buttonEmerald = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [Color(0xFF15803D), Color(0xFF166534)],
+  );
+}
+
 /// Escala de espaciado — base 4px (paridad con la web). Único set permitido.
 class AppSpacing {
   static const double xs = 4;
@@ -102,7 +150,7 @@ class AppTheme {
         ),
         scaffoldBackgroundColor: AppColors.background,
         appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF111827),
+          backgroundColor: Color(0xFF0E1A2C),
           foregroundColor: Colors.white,
           elevation: 0,
           centerTitle: false,

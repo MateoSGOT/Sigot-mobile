@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../config/app_theme.dart';
 import '../providers/auth_provider.dart';
+import '../widgets/sigot_wordmark.dart';
+import '../widgets/truck_loader.dart';
 import 'home_screen.dart';
 import 'login_screen.dart';
 
@@ -36,110 +39,64 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) => Scaffold(
         body: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Color(0xFF111827), Color(0xFF1a2e1a)],
-            ),
-          ),
+          // Mismo degradado del sidebar de la web (navy → teal → esmeralda).
+          decoration: const BoxDecoration(gradient: AppBrand.brand),
           child: Stack(
             children: [
-              // Círculos decorativos
+              // Brillo esmeralda ambiental (como el panel del login web).
               Positioned(
-                top: -60,
-                right: -60,
-                child: _circle(200, 0.04),
+                bottom: -120,
+                right: -80,
+                child: _glow(360, 0.22),
               ),
               Positioned(
-                top: 120,
-                left: -80,
-                child: _circle(160, 0.03),
+                top: -100,
+                left: -90,
+                child: _glow(300, 0.10),
               ),
-              Positioned(
-                bottom: 80,
-                right: -40,
-                child: _circle(140, 0.04),
-              ),
-              Positioned(
-                bottom: -30,
-                left: 40,
-                child: _circle(100, 0.03),
-              ),
-              // Contenido central
+              // Contenido central con entrada suave (fade + scale).
               Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: const Color(0xFFb5f23d),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFF16a34a).withValues(alpha: 0.4),
-                            blurRadius: 24,
-                            spreadRadius: 4,
-                          ),
-                        ],
-                      ),
-                      child: const Center(
-                        child: Text(
-                          'S',
-                          style: TextStyle(
-                            fontSize: 40,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.black,
-                          ),
+                child: TweenAnimationBuilder<double>(
+                  tween: Tween(begin: 0, end: 1),
+                  duration: const Duration(milliseconds: 750),
+                  curve: Curves.easeOutCubic,
+                  builder: (context, t, child) => Opacity(
+                    opacity: t.clamp(0, 1),
+                    child: Transform.scale(scale: 0.94 + 0.06 * t, child: child),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const SigotWordmark(fontSize: 40, letterSpacing: 9),
+                      const SizedBox(height: 14),
+                      Text(
+                        'Sistema de Gestión de Órdenes y Taller',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.66),
+                          fontSize: 13.5,
+                          letterSpacing: 0.2,
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 24),
-                    const Text(
-                      'SIGOT',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 4,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Sistema de Gestión de Talleres',
-                      style: TextStyle(
-                        color: Color(0xFF9ca3af),
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-              // Indicador inferior
+              // Indicador inferior — anillo verde de marca.
               Positioned(
-                bottom: 60,
+                bottom: 56,
                 left: 0,
                 right: 0,
                 child: Column(
                   children: [
-                    const SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(
-                        color: Color(0xFF16a34a),
-                        strokeWidth: 2,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
+                    const TruckLoader(size: 26),
+                    const SizedBox(height: 14),
                     Text(
                       'Iniciando...',
                       style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.5),
+                        color: Colors.white.withValues(alpha: 0.42),
                         fontSize: 12,
+                        letterSpacing: 0.3,
                       ),
-                      textAlign: TextAlign.center,
                     ),
                   ],
                 ),
@@ -149,12 +106,17 @@ class _SplashScreenState extends State<SplashScreen> {
         ),
       );
 
-  Widget _circle(double size, double opacity) => Container(
+  Widget _glow(double size, double opacity) => Container(
         width: size,
         height: size,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: Colors.white.withValues(alpha: opacity),
+          gradient: RadialGradient(
+            colors: [
+              AppBrand.green.withValues(alpha: opacity),
+              AppBrand.green.withValues(alpha: 0),
+            ],
+          ),
         ),
       );
 }

@@ -6,6 +6,8 @@ import 'providers/auth_provider.dart';
 import 'providers/agenda_provider.dart';
 import 'providers/vehiculo_provider.dart';
 import 'providers/orden_provider.dart';
+import 'providers/compra_provider.dart';
+import 'providers/dashboard_provider.dart';
 import 'screens/splash_screen.dart';
 
 void main() async {
@@ -24,6 +26,8 @@ class SigotApp extends StatelessWidget {
           ChangeNotifierProvider(create: (_) => AgendaProvider()),
           ChangeNotifierProvider(create: (_) => VehiculoProvider()),
           ChangeNotifierProvider(create: (_) => OrdenProvider()),
+          ChangeNotifierProvider(create: (_) => CompraProvider()),
+          ChangeNotifierProvider(create: (_) => DashboardProvider()),
         ],
         child: MaterialApp(
           title: 'SIGOT',
