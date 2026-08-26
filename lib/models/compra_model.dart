@@ -24,15 +24,29 @@ class CompraModel {
   double get total => cantidad * precioUnitario;
 
   factory CompraModel.fromJson(Map<String, dynamic> json) => CompraModel(
-        idCompra: (json['Id_Compra'] ?? 0) as int,
-        idProveedor: (json['Id_Proveedor'] ?? 0) as int,
-        proveedor: (json['Proveedor'] ?? '') as String,
-        idRepuesto: (json['Id_Repuesto'] ?? 0) as int,
-        repuesto: (json['Repuesto'] ?? '') as String,
-        cantidad: (json['Cantidad'] ?? 0) as int,
-        precioUnitario: ((json['PrecioUnitario'] ?? 0) as num).toDouble(),
-        fecha: json['Fecha'] as String?,
-        // La web trata Anulada como booleano (puede venir 1/0/true/false).
-        anulada: json['Anulada'] == true || json['Anulada'] == 1,
+        idCompra: _int(json['Id_Compra']),
+        idProveedor: _int(json['Id_Proveedor']),
+        proveedor: _str(json['Proveedor'] ?? json['proveedor']),
+        idRepuesto: _int(json['Id_Repuesto']),
+        repuesto: _str(json['Repuesto'] ?? json['repuesto']),
+        cantidad: _int(json['Cantidad'] ?? json['cantidad']),
+        precioUnitario:
+            _double(json['PrecioUnitario'] ?? json['precioUnitario']),
+        fecha: (json['Fecha'] ?? json['fecha'])?.toString(),
+        // Anulada puede venir como bool, 1/0 o "1"/"0".
+        anulada: _bool(json['Anulada'] ?? json['anulada']),
       );
 }
+
+// Parsers tolerantes: los backends suelen enviar números como texto
+// (p. ej. decimales "18000.00") o el estado como 1/0/"true".
+int _int(dynamic v) =>
+    v is int ? v : (v is num ? v.toInt() : int.tryParse(v?.toString() ?? '') ?? 0);
+
+double _double(dynamic v) =>
+    v is num ? v.toDouble() : double.tryParse(v?.toString() ?? '') ?? 0;
+
+String _str(dynamic v) => v?.toString() ?? '';
+
+bool _bool(dynamic v) =>
+    v == true || v == 1 || v == '1' || v?.toString().toLowerCase() == 'true';

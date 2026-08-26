@@ -65,7 +65,17 @@ class ApiService {
   }
 
   dynamic _handle(http.Response response) {
-    final body = jsonDecode(response.body) as Map<String, dynamic>;
+    // La respuesta puede ser un objeto {data:[...]} o un array [...] directo
+    // (según el endpoint), por eso NO se fuerza a Map: se devuelve el JSON tal
+    // cual y cada servicio decide cómo leerlo (paridad con la web).
+    dynamic body;
+    if (response.body.isNotEmpty) {
+      try {
+        body = jsonDecode(response.body);
+      } catch (_) {
+        body = null;
+      }
+    }
     switch (response.statusCode) {
       case 200:
       case 201:
@@ -79,7 +89,8 @@ class ApiService {
         throw const ApiException('Error del servidor, intenta de nuevo',
             statusCode: 500);
       default:
-        final msg = body['message'] as String? ?? 'Error desconocido';
+        final msg = (body is Map ? body['message'] as String? : null) ??
+            'Error desconocido';
         throw ApiException(msg, statusCode: response.statusCode);
     }
   }

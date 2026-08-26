@@ -56,10 +56,15 @@ class ModuleScaffold extends StatelessWidget {
           elevation: 0,
           systemOverlayStyle: SystemUiOverlayStyle.light,
           titleSpacing: 20,
-          flexibleSpace: const DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: AppBrand.sidebar,
-              border: Border(bottom: BorderSide(color: Color(0x1A4ADE80))),
+          // SizedBox.expand fuerza a que el degradado rellene todo el AppBar;
+          // un DecoratedBox sin hijo colapsa a tamaño cero y el header sale en
+          // blanco (con el wordmark blanco→verde invisible sobre el fondo claro).
+          flexibleSpace: const SizedBox.expand(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: AppBrand.sidebar,
+                border: Border(bottom: BorderSide(color: Color(0x1A4ADE80))),
+              ),
             ),
           ),
           title: const SigotWordmark(fontSize: 20, letterSpacing: 3.5),

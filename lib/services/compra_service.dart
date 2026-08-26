@@ -6,10 +6,17 @@ class CompraService {
   final _api = ApiService();
 
   Future<List<CompraModel>> getCompras() async {
-    final res = await _api.get(ApiConfig.compras) as Map<String, dynamic>;
-    final list = res['data'] as List? ?? res['compras'] as List? ?? [];
-    return list
-        .map((e) => CompraModel.fromJson(e as Map<String, dynamic>))
+    final res = await _api.get(ApiConfig.compras);
+    // La respuesta puede venir como array directo [...] o como {data:[...]}
+    // (o {compras:[...]}). Se tolera cualquiera, igual que la web.
+    final List raw = res is List
+        ? res
+        : (res is Map
+            ? (res['data'] ?? res['compras'] ?? const []) as List
+            : const []);
+    return raw
+        .whereType<Map>()
+        .map((e) => CompraModel.fromJson(Map<String, dynamic>.from(e)))
         .toList();
   }
 }
