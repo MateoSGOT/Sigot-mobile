@@ -5,6 +5,7 @@ import '../../config/app_theme.dart';
 import '../../models/agenda_model.dart';
 import '../../providers/agenda_provider.dart';
 import '../../widgets/estado_badge.dart';
+import '../ordenes/orden_detail_screen.dart';
 
 class AgendaDetailScreen extends StatelessWidget {
   final AgendaModel agenda;
@@ -89,7 +90,12 @@ class AgendaDetailScreen extends StatelessWidget {
                 OutlinedButton.icon(
                   icon: const Icon(Icons.assignment),
                   label: Text('Ver orden #${agenda.ordenId}'),
-                  onPressed: () {},
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => OrdenDetailScreen(idOrden: agenda.ordenId!),
+                    ),
+                  ),
                 ),
             ],
           ),
