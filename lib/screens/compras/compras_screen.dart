@@ -100,12 +100,14 @@ class _ComprasScreenState extends State<ComprasScreen> {
             itemCount: items.length,
             itemBuilder: (ctx, i) => AnimatedEntrance(
               index: i,
-              child: CompraCard(
-                compra: items[i],
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => CompraDetailScreen(compra: items[i]),
+              child: Pressable(
+                child: CompraCard(
+                  compra: items[i],
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => CompraDetailScreen(compra: items[i]),
+                    ),
                   ),
                 ),
               ),

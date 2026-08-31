@@ -82,6 +82,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 icon: Icons.payments,
                 label: 'Ingreso del rango',
                 value: formatCurrency(r.ingresoTotal),
+                animate: r.ingresoTotal,
+                format: (n) => formatCurrency(n),
                 sub: 'Órdenes entregadas',
                 color: AppColors.primaryStrong,
                 loading: loading,
@@ -93,6 +95,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 icon: Icons.receipt_long,
                 label: 'Órdenes realizadas',
                 value: '${r.ordenesRealizadas}',
+                animate: r.ordenesRealizadas,
+                format: (n) => n.round().toString(),
                 sub: 'En el rango',
                 color: AppColors.infoStrong,
                 loading: loading,
@@ -108,6 +112,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 icon: Icons.confirmation_number,
                 label: 'Ticket promedio',
                 value: formatCurrency(r.ticketPromedio),
+                animate: r.ticketPromedio,
+                format: (n) => formatCurrency(n),
                 sub: 'Por orden',
                 color: AppColors.badgePendiente,
                 loading: loading,
@@ -119,6 +125,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 icon: Icons.inventory_2,
                 label: 'Stock bajo',
                 value: '${r.stockBajo}',
+                animate: r.stockBajo,
+                format: (n) => n.round().toString(),
                 sub: r.stockCritico > 0
                     ? '${r.stockCritico} agotado(s)'
                     : 'Repuestos',
@@ -267,13 +275,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             Expanded(
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(6),
-                                child: LinearProgressIndicator(
-                                  value: (s.veces / maxV).clamp(0.05, 1.0),
-                                  minHeight: 8,
-                                  backgroundColor:
-                                      AppColors.primary.withValues(alpha: 0.10),
-                                  valueColor: const AlwaysStoppedAnimation(
-                                      AppColors.primary),
+                                child: TweenAnimationBuilder<double>(
+                                  tween: Tween(
+                                      begin: 0.0,
+                                      end: (s.veces / maxV)
+                                          .clamp(0.05, 1.0)
+                                          .toDouble()),
+                                  duration:
+                                      const Duration(milliseconds: 800),
+                                  curve: Curves.easeOutCubic,
+                                  builder: (_, v, __) =>
+                                      LinearProgressIndicator(
+                                    value: v,
+                                    minHeight: 8,
+                                    backgroundColor: AppColors.primary
+                                        .withValues(alpha: 0.10),
+                                    valueColor: const AlwaysStoppedAnimation(
+                                        AppColors.primary),
+                                  ),
                                 ),
                               ),
                             ),

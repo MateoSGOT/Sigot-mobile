@@ -13,6 +13,7 @@ import '../../widgets/detail_ui.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/empty_state_widget.dart';
 import '../login_screen.dart';
+import 'agendar_cita_screen.dart';
 
 class PortalScreen extends StatefulWidget {
   const PortalScreen({super.key});
@@ -129,6 +130,19 @@ class _PortalScreenState extends State<PortalScreen> {
             ),
           ],
         ),
+        floatingActionButton: _idx == 3
+            ? FloatingActionButton.extended(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => const AgendarCitaScreen()),
+                ),
+                icon: const Icon(Icons.add),
+                label: const Text('Agendar'),
+              )
+            : null,
         bottomNavigationBar: _bottomNav(),
       );
 
@@ -372,11 +386,81 @@ class _PortalScreenState extends State<PortalScreen> {
                   const SizedBox(height: 4),
                   _row(Icons.description, c.descripcion!),
                 ],
+                if (c.estadoCita == 'Pendiente' ||
+                    c.estadoCita == 'Confirmada') ...[
+                  const SizedBox(height: 2),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton.icon(
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppColors.error,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      onPressed: () => _cancelarCita(c),
+                      icon: const Icon(Icons.event_busy, size: 16),
+                      label: const Text('Cancelar'),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
         ),
       );
+
+  Future<void> _cancelarCita(PortalCita c) async {
+    final motivoCtrl = TextEditingController();
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Cancelar cita'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+                '¿Seguro que deseas cancelar esta cita? Cuéntanos el motivo.'),
+            const SizedBox(height: 12),
+            TextField(
+              controller: motivoCtrl,
+              maxLines: 2,
+              decoration: const InputDecoration(
+                hintText: 'Motivo de la cancelación...',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Volver')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.dangerStrong),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Sí, cancelar'),
+          ),
+        ],
+      ),
+    );
+    final motivo = motivoCtrl.text.trim();
+    motivoCtrl.dispose();
+    if (confirm != true || !mounted) return;
+    final err = await context
+        .read<PortalProvider>()
+        .cancelarCita(c.idAgenda, motivo.isEmpty ? 'Sin motivo' : motivo);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(err ?? 'Cita cancelada'),
+        backgroundColor: err == null ? AppColors.primary : AppColors.error,
+      ),
+    );
+  }
 
   // ─────────────────────────── Helpers ───────────────────────────
   Widget _listBody<T>({

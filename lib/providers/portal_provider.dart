@@ -37,4 +37,30 @@ class PortalProvider extends ChangeNotifier {
     }
     notifyListeners();
   }
+
+  /// Agenda una cita. Devuelve `null` si todo bien, o el mensaje de error.
+  Future<String?> crearCita(Map<String, dynamic> data) async {
+    try {
+      await _service.createCita(data);
+      await load();
+      return null;
+    } on ApiException catch (e) {
+      return e.message;
+    } catch (_) {
+      return 'No se pudo agendar la cita';
+    }
+  }
+
+  /// Cancela una cita. Devuelve `null` si todo bien, o el mensaje de error.
+  Future<String?> cancelarCita(int id, String motivo) async {
+    try {
+      await _service.cancelCita(id, motivo);
+      await load();
+      return null;
+    } on ApiException catch (e) {
+      return e.message;
+    } catch (_) {
+      return 'No se pudo cancelar la cita';
+    }
+  }
 }

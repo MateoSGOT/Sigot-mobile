@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import '../config/app_theme.dart';
 
-/// Tarjeta de KPI del dashboard (paridad con `StatCard` de la web): chip de
-/// icono coloreado + etiqueta, valor grande y subtítulo opcional.
+/// Tarjeta de KPI del dashboard: chip de icono coloreado, valor grande (con
+/// animación de conteo opcional) y subtítulo.
 class StatCard extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
+  final num? animate; // valor numérico a animar (cuenta hacia arriba)
+  final String Function(num)? format;
   final String? sub;
   final Color color;
   final bool loading;
@@ -17,9 +19,18 @@ class StatCard extends StatelessWidget {
     required this.label,
     required this.value,
     required this.color,
+    this.animate,
+    this.format,
     this.sub,
     this.loading = false,
   });
+
+  static const _valueStyle = TextStyle(
+    fontSize: 21,
+    fontWeight: FontWeight.w800,
+    color: AppColors.textPrimary,
+    height: 1.1,
+  );
 
   @override
   Widget build(BuildContext context) => Container(
@@ -38,19 +49,21 @@ class StatCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Container(
-                  width: 38,
-                  height: 38,
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.13),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(icon, color: color, size: 21),
+            Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    color.withValues(alpha: 0.16),
+                    color.withValues(alpha: 0.08),
+                  ],
                 ),
-                const Spacer(),
-              ],
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, color: color, size: 21),
             ),
             const SizedBox(height: 12),
             loading
@@ -62,17 +75,24 @@ class StatCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(6),
                     ),
                   )
-                : Text(
-                    value,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 21,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.textPrimary,
-                      height: 1.1,
-                    ),
-                  ),
+                : (animate != null && format != null)
+                    ? TweenAnimationBuilder<double>(
+                        tween: Tween(begin: 0.0, end: animate!.toDouble()),
+                        duration: const Duration(milliseconds: 900),
+                        curve: Curves.easeOutCubic,
+                        builder: (_, v, __) => Text(
+                          format!(v),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: _valueStyle,
+                        ),
+                      )
+                    : Text(
+                        value,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: _valueStyle,
+                      ),
             const SizedBox(height: 4),
             Text(
               label,
@@ -84,10 +104,7 @@ class StatCard extends StatelessWidget {
             ),
             if (sub != null) ...[
               const SizedBox(height: 2),
-              Text(
-                sub!,
-                style: TextStyle(fontSize: 11, color: color),
-              ),
+              Text(sub!, style: TextStyle(fontSize: 11, color: color)),
             ],
           ],
         ),

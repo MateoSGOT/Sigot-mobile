@@ -107,13 +107,15 @@ class _OrdenesScreenState extends State<OrdenesScreen> {
             itemCount: items.length,
             itemBuilder: (ctx, i) => AnimatedEntrance(
               index: i,
-              child: OrdenCard(
-                orden: items[i],
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) =>
-                        OrdenDetailScreen(idOrden: items[i].idOrden),
+              child: Pressable(
+                child: OrdenCard(
+                  orden: items[i],
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          OrdenDetailScreen(idOrden: items[i].idOrden),
+                    ),
                   ),
                 ),
               ),

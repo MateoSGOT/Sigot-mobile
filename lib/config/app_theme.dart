@@ -142,6 +142,14 @@ class AppMotion {
 class AppTheme {
   static ThemeData get theme => ThemeData(
         useMaterial3: true,
+        // Transición de páginas con deslizamiento (más fluido que el zoom por
+        // defecto) en todas las plataformas.
+        pageTransitionsTheme: const PageTransitionsTheme(
+          builders: {
+            TargetPlatform.android: CupertinoPageTransitionsBuilder(),
+            TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+          },
+        ),
         colorScheme: ColorScheme.fromSeed(
           seedColor: AppColors.primary,
           primary: AppColors.primary,

@@ -94,18 +94,20 @@ class _AgendaScreenState extends State<AgendaScreen> {
                 itemCount: items.length,
                 itemBuilder: (ctx, i) => AnimatedEntrance(
                   index: i,
-                  child: AgendaCard(
-                    agenda: items[i],
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            AgendaDetailScreen(agenda: items[i]),
+                  child: Pressable(
+                    child: AgendaCard(
+                      agenda: items[i],
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              AgendaDetailScreen(agenda: items[i]),
+                        ),
                       ),
+                      onVerOrden: items[i].ordenId != null
+                          ? () => _goToOrden(items[i].ordenId!)
+                          : null,
                     ),
-                    onVerOrden: items[i].ordenId != null
-                        ? () => _goToOrden(items[i].ordenId!)
-                        : null,
                   ),
                 ),
               ),

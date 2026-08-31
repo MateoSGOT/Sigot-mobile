@@ -246,3 +246,35 @@ class _AnimatedEntranceState extends State<AnimatedEntrance>
         child: widget.child,
       );
 }
+
+/// Reduce ligeramente la escala mientras se mantiene presionado. Usa `Listener`
+/// (pasivo), así el `InkWell` interno conserva su ripple y el scroll no se
+/// bloquea.
+class Pressable extends StatefulWidget {
+  final Widget child;
+  const Pressable({super.key, required this.child});
+
+  @override
+  State<Pressable> createState() => _PressableState();
+}
+
+class _PressableState extends State<Pressable> {
+  bool _down = false;
+
+  void _set(bool v) {
+    if (_down != v) setState(() => _down = v);
+  }
+
+  @override
+  Widget build(BuildContext context) => Listener(
+        onPointerDown: (_) => _set(true),
+        onPointerUp: (_) => _set(false),
+        onPointerCancel: (_) => _set(false),
+        child: AnimatedScale(
+          scale: _down ? 0.98 : 1.0,
+          duration: const Duration(milliseconds: 110),
+          curve: Curves.easeOut,
+          child: widget.child,
+        ),
+      );
+}

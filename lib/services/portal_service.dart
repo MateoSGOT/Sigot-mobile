@@ -36,4 +36,12 @@ class PortalService {
         .map((e) => PortalCita.fromJson(Map<String, dynamic>.from(e)))
         .toList();
   }
+
+  Future<void> createCita(Map<String, dynamic> data) async {
+    await _api.post(ApiConfig.portalCitas, data);
+  }
+
+  Future<void> cancelCita(int id, String motivo) async {
+    await _api.patch('${ApiConfig.portalCitas}/$id/cancelar', {'motivo': motivo});
+  }
 }

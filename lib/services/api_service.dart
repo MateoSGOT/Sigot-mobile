@@ -64,6 +64,25 @@ class ApiService {
     }
   }
 
+  Future<dynamic> patch(String path, [Map<String, dynamic> body = const {}],
+      {bool auth = true}) async {
+    final token = auth ? await _getToken() : null;
+    try {
+      final response = await http
+          .patch(
+            Uri.parse('${ApiConfig.baseUrl}$path'),
+            headers: _headers(token),
+            body: jsonEncode(body),
+          )
+          .timeout(ApiConfig.timeout);
+      return _handle(response);
+    } on SocketException {
+      throw const ApiException('Sin conexión a internet');
+    } on TimeoutException {
+      throw const ApiException('Tiempo de espera agotado');
+    }
+  }
+
   dynamic _handle(http.Response response) {
     // La respuesta puede ser un objeto {data:[...]} o un array [...] directo
     // (según el endpoint), por eso NO se fuerza a Map: se devuelve el JSON tal
