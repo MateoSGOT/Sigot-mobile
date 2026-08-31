@@ -517,11 +517,16 @@ class _PortalScreenState extends State<PortalScreen> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(_navItems[i].$1,
-                size: 22,
-                color: active
-                    ? AppBrand.green
-                    : Colors.white.withValues(alpha: 0.55)),
+            AnimatedScale(
+              scale: active ? 1.08 : 1.0,
+              duration: AppMotion.base,
+              curve: AppMotion.ease,
+              child: Icon(_navItems[i].$1,
+                  size: 22,
+                  color: active
+                      ? AppBrand.green
+                      : Colors.white.withValues(alpha: 0.55)),
+            ),
             AnimatedSize(
               duration: AppMotion.base,
               curve: AppMotion.ease,

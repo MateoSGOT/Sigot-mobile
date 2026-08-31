@@ -1,8 +1,8 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../config/app_theme.dart';
 import '../providers/auth_provider.dart';
-import '../widgets/sigot_wordmark.dart';
 import '../widgets/truck_loader.dart';
 import 'home_screen.dart';
 import 'login_screen.dart';
@@ -152,8 +152,8 @@ class _SplashScreenState extends State<SplashScreen>
       );
 }
 
-/// Wordmark con un destello (shimmer) que barre las letras periódicamente,
-/// sobre el degradado de marca.
+/// Wordmark animado: las letras hacen una onda continua y un destello barre
+/// por encima, sobre el degradado de marca.
 class _ShimmerWordmark extends StatefulWidget {
   final double fontSize;
   final double letterSpacing;
@@ -164,13 +164,18 @@ class _ShimmerWordmark extends StatefulWidget {
 }
 
 class _ShimmerWordmarkState extends State<_ShimmerWordmark>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _c;
+    with TickerProviderStateMixin {
+  late final AnimationController _wave;
+  late final AnimationController _shimmer;
 
   @override
   void initState() {
     super.initState();
-    _c = AnimationController(
+    _wave = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1700),
+    )..repeat();
+    _shimmer = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 2600),
     )..repeat();
@@ -178,51 +183,75 @@ class _ShimmerWordmarkState extends State<_ShimmerWordmark>
 
   @override
   void dispose() {
-    _c.dispose();
+    _wave.dispose();
+    _shimmer.dispose();
     super.dispose();
   }
 
+  TextStyle get _style => TextStyle(
+        fontSize: widget.fontSize,
+        fontWeight: FontWeight.w800,
+        letterSpacing: widget.letterSpacing,
+        height: 1.0,
+        color: Colors.white,
+      );
+
+  // Fila de letras con una onda que viaja de izquierda a derecha.
+  Widget _wavingRow() => AnimatedBuilder(
+        animation: _wave,
+        builder: (context, _) {
+          final amp = widget.fontSize * 0.06;
+          return Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (var i = 0; i < 5; i++)
+                Transform.translate(
+                  offset: Offset(
+                    0,
+                    math.sin(_wave.value * 2 * math.pi - i * 0.6) * amp,
+                  ),
+                  child: Text('SIGOT'[i], style: _style),
+                ),
+            ],
+          );
+        },
+      );
+
   @override
-  Widget build(BuildContext context) {
-    final style = TextStyle(
-      fontSize: widget.fontSize,
-      fontWeight: FontWeight.w800,
-      letterSpacing: widget.letterSpacing,
-      height: 1.0,
-      color: Colors.white,
-    );
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        SigotWordmark(
-            fontSize: widget.fontSize, letterSpacing: widget.letterSpacing),
-        AnimatedBuilder(
-          animation: _c,
-          builder: (context, _) => ShaderMask(
+  Widget build(BuildContext context) => Stack(
+        alignment: Alignment.center,
+        children: [
+          // Base: letras con degradado de marca.
+          ShaderMask(
             blendMode: BlendMode.srcIn,
-            shaderCallback: (bounds) {
-              // Barrido de luz sobre las letras usando stops móviles (sin
-              // Matrix4/GradientTransform, para máxima compatibilidad).
-              final center = _c.value * 1.6 - 0.3;
-              const half = 0.18;
-              final a = (center - half).clamp(0.0, 0.996).toDouble();
-              final b = center.clamp(a + 0.002, 0.998).toDouble();
-              final d = (center + half).clamp(b + 0.002, 1.0).toDouble();
-              return LinearGradient(
-                begin: Alignment.centerLeft,
-                end: Alignment.centerRight,
-                colors: [
-                  Colors.white.withValues(alpha: 0),
-                  Colors.white.withValues(alpha: 0.8),
-                  Colors.white.withValues(alpha: 0),
-                ],
-                stops: [a, b, d],
-              ).createShader(bounds);
-            },
-            child: Text('SIGOT', style: style),
+            shaderCallback: (bounds) => AppBrand.wordmark.createShader(bounds),
+            child: _wavingRow(),
           ),
-        ),
-      ],
-    );
-  }
+          // Destello que barre por encima (mismas letras onduladas).
+          AnimatedBuilder(
+            animation: _shimmer,
+            builder: (context, _) => ShaderMask(
+              blendMode: BlendMode.srcIn,
+              shaderCallback: (bounds) {
+                final center = _shimmer.value * 1.6 - 0.3;
+                const half = 0.18;
+                final a = (center - half).clamp(0.0, 0.996).toDouble();
+                final b = center.clamp(a + 0.002, 0.998).toDouble();
+                final d = (center + half).clamp(b + 0.002, 1.0).toDouble();
+                return LinearGradient(
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                  colors: [
+                    Colors.white.withValues(alpha: 0),
+                    Colors.white.withValues(alpha: 0.85),
+                    Colors.white.withValues(alpha: 0),
+                  ],
+                  stops: [a, b, d],
+                ).createShader(bounds);
+              },
+              child: _wavingRow(),
+            ),
+          ),
+        ],
+      );
 }
