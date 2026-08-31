@@ -25,3 +25,44 @@ class EmpleadoModel {
         'Rol': rol,
       };
 }
+
+/// Cliente del taller (para el panel del cliente / portal).
+class ClienteModel {
+  final int idCliente;
+  final String nombre;
+  final String? tipoDocumento;
+  final String? documento;
+  final String? correo;
+  final String? telefono;
+  final String? foto;
+
+  const ClienteModel({
+    required this.idCliente,
+    required this.nombre,
+    this.tipoDocumento,
+    this.documento,
+    this.correo,
+    this.telefono,
+    this.foto,
+  });
+
+  factory ClienteModel.fromJson(Map<String, dynamic> json) => ClienteModel(
+        idCliente: (json['Id_Cliente'] ?? 0) as int,
+        nombre: (json['Nombre'] ?? '') as String,
+        tipoDocumento: json['TipoDocumento'] as String?,
+        documento: (json['Documento'])?.toString(),
+        correo: json['Correo'] as String?,
+        telefono: (json['Telefono'] ?? json['Contacto'])?.toString(),
+        foto: (json['Foto'] ?? json['Foto_url']) as String?,
+      );
+
+  Map<String, dynamic> toJson() => {
+        'Id_Cliente': idCliente,
+        'Nombre': nombre,
+        'TipoDocumento': tipoDocumento,
+        'Documento': documento,
+        'Correo': correo,
+        'Telefono': telefono,
+        'Foto': foto,
+      };
+}

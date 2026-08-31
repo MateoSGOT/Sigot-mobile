@@ -8,6 +8,7 @@ import 'providers/vehiculo_provider.dart';
 import 'providers/orden_provider.dart';
 import 'providers/compra_provider.dart';
 import 'providers/dashboard_provider.dart';
+import 'providers/portal_provider.dart';
 import 'screens/splash_screen.dart';
 
 void main() async {
@@ -28,6 +29,7 @@ class SigotApp extends StatelessWidget {
           ChangeNotifierProvider(create: (_) => OrdenProvider()),
           ChangeNotifierProvider(create: (_) => CompraProvider()),
           ChangeNotifierProvider(create: (_) => DashboardProvider()),
+          ChangeNotifierProvider(create: (_) => PortalProvider()),
         ],
         child: MaterialApp(
           title: 'SIGOT',

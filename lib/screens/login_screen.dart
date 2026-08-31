@@ -6,6 +6,7 @@ import '../providers/auth_provider.dart';
 import '../widgets/sigot_wordmark.dart';
 import 'forgot_password_screen.dart';
 import 'home_screen.dart';
+import 'portal/portal_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -66,8 +67,12 @@ class _LoginScreenState extends State<LoginScreen>
     });
 
     if (ok) {
+      final cliente = auth.isCliente;
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
+        MaterialPageRoute(
+          builder: (_) =>
+              cliente ? const PortalScreen() : const HomeScreen(),
+        ),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(

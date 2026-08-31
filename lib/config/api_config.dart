@@ -17,6 +17,13 @@ class ApiConfig {
   static const String tiposDocumento = '/api/catalogos/tipos-documento';
   static const String marcas = '/api/catalogos/marcas';
 
+  // Portal del cliente (paridad con PortalPage.jsx de la web)
+  static const String portalVehiculos = '/api/portal/vehiculos';
+  static const String portalOrdenes = '/api/portal/ordenes';
+  static const String portalCitas = '/api/portal/citas';
+
   static const String tokenKey = 'sigot_token';
   static const String empleadoKey = 'sigot_empleado';
+  static const String clienteKey = 'sigot_cliente';
+  static const String tipoKey = 'sigot_tipo';
 }

@@ -6,6 +6,7 @@ import '../widgets/sigot_wordmark.dart';
 import '../widgets/truck_loader.dart';
 import 'home_screen.dart';
 import 'login_screen.dart';
+import 'portal/portal_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -43,8 +44,9 @@ class _SplashScreenState extends State<SplashScreen>
     if (!mounted) return;
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
-        builder: (_) =>
-            auth.isAuthenticated ? const HomeScreen() : const LoginScreen(),
+        builder: (_) => !auth.isAuthenticated
+            ? const LoginScreen()
+            : (auth.isCliente ? const PortalScreen() : const HomeScreen()),
       ),
     );
   }
