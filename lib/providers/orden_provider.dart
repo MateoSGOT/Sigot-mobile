@@ -20,6 +20,8 @@ class OrdenProvider extends ChangeNotifier {
   String? get error => _error;
   String? get filterEstado => _filterEstado;
 
+  List<OrdenModel> get all => _items;
+
   List<OrdenModel> get filtered {
     var list = _items;
     if (_filterEstado != null) {

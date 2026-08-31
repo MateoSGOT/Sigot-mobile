@@ -4,6 +4,7 @@ import '../../config/app_theme.dart';
 import '../../providers/orden_provider.dart';
 import '../../services/api_service.dart';
 import '../../widgets/orden_card.dart';
+import '../../widgets/detail_ui.dart';
 import '../../widgets/filter_chips.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/empty_state_widget.dart';
@@ -104,13 +105,16 @@ class _OrdenesScreenState extends State<OrdenesScreen> {
           onRefresh: provider.load,
           child: ListView.builder(
             itemCount: items.length,
-            itemBuilder: (ctx, i) => OrdenCard(
-              orden: items[i],
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) =>
-                      OrdenDetailScreen(idOrden: items[i].idOrden),
+            itemBuilder: (ctx, i) => AnimatedEntrance(
+              index: i,
+              child: OrdenCard(
+                orden: items[i],
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        OrdenDetailScreen(idOrden: items[i].idOrden),
+                  ),
                 ),
               ),
             ),

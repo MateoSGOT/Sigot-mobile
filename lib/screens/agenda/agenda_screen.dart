@@ -4,6 +4,7 @@ import '../../config/app_theme.dart';
 import '../../providers/agenda_provider.dart';
 import '../../services/api_service.dart';
 import '../../widgets/agenda_card.dart';
+import '../../widgets/detail_ui.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/empty_state_widget.dart';
 import 'agenda_detail_screen.dart';
@@ -91,18 +92,21 @@ class _AgendaScreenState extends State<AgendaScreen> {
               onRefresh: provider.load,
               child: ListView.builder(
                 itemCount: items.length,
-                itemBuilder: (ctx, i) => AgendaCard(
-                  agenda: items[i],
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) =>
-                          AgendaDetailScreen(agenda: items[i]),
+                itemBuilder: (ctx, i) => AnimatedEntrance(
+                  index: i,
+                  child: AgendaCard(
+                    agenda: items[i],
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            AgendaDetailScreen(agenda: items[i]),
+                      ),
                     ),
+                    onVerOrden: items[i].ordenId != null
+                        ? () => _goToOrden(items[i].ordenId!)
+                        : null,
                   ),
-                  onVerOrden: items[i].ordenId != null
-                      ? () => _goToOrden(items[i].ordenId!)
-                      : null,
                 ),
               ),
             ),

@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../config/app_theme.dart';
@@ -14,11 +15,24 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> {
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _drift;
+
   @override
   void initState() {
     super.initState();
+    _drift = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 6),
+    )..repeat(reverse: true);
     _init();
+  }
+
+  @override
+  void dispose() {
+    _drift.dispose();
+    super.dispose();
   }
 
   Future<void> _init() async {
@@ -39,36 +53,45 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) => Scaffold(
         body: Container(
-          // Mismo degradado del sidebar de la web (navy → teal → esmeralda).
           decoration: const BoxDecoration(gradient: AppBrand.brand),
           child: Stack(
             children: [
-              // Brillo esmeralda ambiental (como el panel del login web).
-              Positioned(
-                bottom: -120,
-                right: -80,
-                child: _glow(360, 0.22),
+              // Resplandores ambientales que se desplazan lentamente.
+              AnimatedBuilder(
+                animation: _drift,
+                builder: (context, _) {
+                  final d = (_drift.value - 0.5) * 2; // -1..1
+                  return Stack(
+                    children: [
+                      Positioned(
+                        bottom: -120 + d * 14,
+                        right: -80 - d * 16,
+                        child: _glow(360, 0.22),
+                      ),
+                      Positioned(
+                        top: -100 - d * 12,
+                        left: -90 + d * 14,
+                        child: _glow(300, 0.10),
+                      ),
+                    ],
+                  );
+                },
               ),
-              Positioned(
-                top: -100,
-                left: -90,
-                child: _glow(300, 0.10),
-              ),
-              // Contenido central con entrada suave (fade + scale).
+              // Contenido central con entrada suave (fade + scale) + shimmer.
               Center(
                 child: TweenAnimationBuilder<double>(
                   tween: Tween(begin: 0, end: 1),
-                  duration: const Duration(milliseconds: 750),
+                  duration: const Duration(milliseconds: 800),
                   curve: Curves.easeOutCubic,
-                  builder: (context, t, child) => Opacity(
-                    opacity: t.clamp(0, 1),
-                    child: Transform.scale(scale: 0.94 + 0.06 * t, child: child),
+                  builder: (context, v, child) => Opacity(
+                    opacity: v.clamp(0, 1),
+                    child: Transform.scale(scale: 0.92 + 0.08 * v, child: child),
                   ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const SigotWordmark(fontSize: 40, letterSpacing: 9),
-                      const SizedBox(height: 14),
+                      const _ShimmerWordmark(fontSize: 42, letterSpacing: 9),
+                      const SizedBox(height: 16),
                       Text(
                         'Sistema de Gestión de Órdenes y Taller',
                         style: TextStyle(
@@ -81,24 +104,31 @@ class _SplashScreenState extends State<SplashScreen> {
                   ),
                 ),
               ),
-              // Indicador inferior — anillo verde de marca.
+              // Camión + indicador inferior (aparece un poco después).
               Positioned(
-                bottom: 56,
+                bottom: 54,
                 left: 0,
                 right: 0,
-                child: Column(
-                  children: [
-                    const TruckLoader(size: 26),
-                    const SizedBox(height: 14),
-                    Text(
-                      'Iniciando...',
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.42),
-                        fontSize: 12,
-                        letterSpacing: 0.3,
+                child: TweenAnimationBuilder<double>(
+                  tween: Tween(begin: 0, end: 1),
+                  duration: const Duration(milliseconds: 1100),
+                  curve: Curves.easeOut,
+                  builder: (context, v, child) =>
+                      Opacity(opacity: v.clamp(0, 1), child: child),
+                  child: Column(
+                    children: [
+                      const TruckLoader(size: 32),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Iniciando...',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.45),
+                          fontSize: 12,
+                          letterSpacing: 0.3,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -119,4 +149,81 @@ class _SplashScreenState extends State<SplashScreen> {
           ),
         ),
       );
+}
+
+/// Wordmark con un destello (shimmer) que barre las letras periódicamente,
+/// sobre el degradado de marca.
+class _ShimmerWordmark extends StatefulWidget {
+  final double fontSize;
+  final double letterSpacing;
+  const _ShimmerWordmark({required this.fontSize, required this.letterSpacing});
+
+  @override
+  State<_ShimmerWordmark> createState() => _ShimmerWordmarkState();
+}
+
+class _ShimmerWordmarkState extends State<_ShimmerWordmark>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c;
+
+  @override
+  void initState() {
+    super.initState();
+    _c = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2600),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final style = TextStyle(
+      fontSize: widget.fontSize,
+      fontWeight: FontWeight.w800,
+      letterSpacing: widget.letterSpacing,
+      height: 1.0,
+      color: Colors.white,
+    );
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        SigotWordmark(
+            fontSize: widget.fontSize, letterSpacing: widget.letterSpacing),
+        AnimatedBuilder(
+          animation: _c,
+          builder: (context, _) => ShaderMask(
+            blendMode: BlendMode.srcIn,
+            shaderCallback: (bounds) => LinearGradient(
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+              colors: [
+                Colors.transparent,
+                Colors.white.withValues(alpha: 0.75),
+                Colors.transparent,
+              ],
+              stops: const [0.35, 0.5, 0.65],
+              transform: _SlideGradient(_c.value),
+            ).createShader(bounds),
+            child: Text('SIGOT', style: style),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Desplaza un degradado horizontalmente de -ancho a +ancho según `t` (0..1).
+class _SlideGradient extends GradientTransform {
+  final double t;
+  const _SlideGradient(this.t);
+
+  @override
+  Matrix4? transform(Rect bounds, {TextDirection? textDirection}) =>
+      Matrix4.translationValues((t * 2 - 1) * bounds.width, 0, 0);
 }

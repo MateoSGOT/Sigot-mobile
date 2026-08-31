@@ -14,7 +14,8 @@ class LoginScreen extends StatefulWidget {
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends State<LoginScreen>
+    with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _correoCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
@@ -22,12 +23,23 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _loading = false;
   bool _showSlowMessage = false;
   Timer? _slowTimer;
+  late final AnimationController _drift;
+
+  @override
+  void initState() {
+    super.initState();
+    _drift = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 7),
+    )..repeat(reverse: true);
+  }
 
   @override
   void dispose() {
     _correoCtrl.dispose();
     _passCtrl.dispose();
     _slowTimer?.cancel();
+    _drift.dispose();
     super.dispose();
   }
 
@@ -73,8 +85,25 @@ class _LoginScreenState extends State<LoginScreen> {
           decoration: const BoxDecoration(gradient: AppBrand.brand),
           child: Stack(
             children: [
-              Positioned(bottom: -120, right: -90, child: _glow(360, 0.30)),
-              Positioned(top: -110, left: -100, child: _glow(300, 0.10)),
+              // Resplandores ambientales que se desplazan lentamente.
+              AnimatedBuilder(
+                animation: _drift,
+                builder: (context, _) {
+                  final d = (_drift.value - 0.5) * 2;
+                  return Stack(
+                    children: [
+                      Positioned(
+                          bottom: -120 + d * 18,
+                          right: -90 - d * 14,
+                          child: _glow(360, 0.30)),
+                      Positioned(
+                          top: -110 - d * 14,
+                          left: -100 + d * 16,
+                          child: _glow(300, 0.10)),
+                    ],
+                  );
+                },
+              ),
               SafeArea(
                 child: Center(
                   child: SingleChildScrollView(
@@ -84,12 +113,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       constraints: const BoxConstraints(maxWidth: 420),
                       child: TweenAnimationBuilder<double>(
                         tween: Tween(begin: 0, end: 1),
-                        duration: const Duration(milliseconds: 600),
+                        duration: const Duration(milliseconds: 650),
                         curve: Curves.easeOutCubic,
                         builder: (context, t, child) => Opacity(
                           opacity: t.clamp(0, 1),
                           child: Transform.translate(
-                            offset: Offset(0, 16 * (1 - t)),
+                            offset: Offset(0, 18 * (1 - t)),
                             child: child,
                           ),
                         ),
@@ -130,9 +159,16 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Widget _buildCard() => Container(
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.05),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
+          color: Colors.white.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.28),
+              blurRadius: 30,
+              offset: const Offset(0, 16),
+            ),
+          ],
         ),
         padding: const EdgeInsets.all(22),
         child: Form(
@@ -140,7 +176,6 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Encabezado de la tarjeta: saludo + instrucción.
               Text.rich(
                 const TextSpan(
                   text: 'Bienvenido ',
@@ -167,7 +202,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               const SizedBox(height: 22),
-              _buildField(
+              _AuthField(
                 controller: _correoCtrl,
                 label: 'Correo electrónico',
                 hint: 'correo@empresa.com',
@@ -177,7 +212,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     (v == null || v.isEmpty) ? 'Ingresa tu correo' : null,
               ),
               const SizedBox(height: 16),
-              _buildField(
+              _AuthField(
                 controller: _passCtrl,
                 label: 'Contraseña',
                 hint: '••••••••',
@@ -199,7 +234,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 alignment: Alignment.centerRight,
                 child: TextButton(
                   style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
                     minimumSize: Size.zero,
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
@@ -226,72 +262,7 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       );
 
-  Widget _buildField({
-    required TextEditingController controller,
-    required String label,
-    required String hint,
-    required IconData icon,
-    TextInputType? keyboardType,
-    bool obscure = false,
-    Widget? suffix,
-    String? Function(String?)? validator,
-  }) =>
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(left: 2, bottom: 7),
-            child: Text(
-              label,
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.80),
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-          TextFormField(
-            controller: controller,
-            keyboardType: keyboardType,
-            obscureText: obscure,
-            style: const TextStyle(color: Colors.white),
-            cursorColor: AppBrand.green,
-            decoration: InputDecoration(
-              hintText: hint,
-              hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.32)),
-              prefixIcon: Icon(icon, color: const Color(0xFF9ca3af), size: 20),
-              suffixIcon: suffix,
-              filled: true,
-              fillColor: Colors.white.withValues(alpha: 0.07),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide:
-                    BorderSide(color: Colors.white.withValues(alpha: 0.10)),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppBrand.green, width: 1.6),
-              ),
-              errorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Color(0xFFef4444)),
-              ),
-              focusedErrorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Color(0xFFef4444)),
-              ),
-              errorStyle: const TextStyle(color: Color(0xFFfca5a5)),
-            ),
-            validator: validator,
-          ),
-        ],
-      );
-
-  Widget _buildButton() => GestureDetector(
+  Widget _buildButton() => _PressableScale(
         onTap: _submit,
         child: Container(
           height: 52,
@@ -300,21 +271,29 @@ class _LoginScreenState extends State<LoginScreen> {
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF16a34a).withValues(alpha: 0.42),
-                blurRadius: 18,
-                offset: const Offset(0, 6),
+                color: const Color(0xFF16a34a).withValues(alpha: 0.45),
+                blurRadius: 20,
+                offset: const Offset(0, 7),
               ),
             ],
           ),
           child: const Center(
-            child: Text(
-              'Ingresar',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.2,
-              ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Ingresar',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.2,
+                  ),
+                ),
+                SizedBox(width: 8),
+                Icon(Icons.arrow_forward_rounded,
+                    color: Colors.white, size: 20),
+              ],
             ),
           ),
         ),
@@ -399,6 +378,159 @@ class _LoginScreenState extends State<LoginScreen> {
               AppBrand.green.withValues(alpha: 0),
             ],
           ),
+        ),
+      );
+}
+
+/// Campo con foco interactivo: al enfocar, el borde y el icono pasan a verde y
+/// aparece un halo suave (glow), con transición animada.
+class _AuthField extends StatefulWidget {
+  final TextEditingController controller;
+  final String label;
+  final String hint;
+  final IconData icon;
+  final bool obscure;
+  final Widget? suffix;
+  final TextInputType? keyboardType;
+  final String? Function(String?)? validator;
+
+  const _AuthField({
+    required this.controller,
+    required this.label,
+    required this.hint,
+    required this.icon,
+    this.obscure = false,
+    this.suffix,
+    this.keyboardType,
+    this.validator,
+  });
+
+  @override
+  State<_AuthField> createState() => _AuthFieldState();
+}
+
+class _AuthFieldState extends State<_AuthField> {
+  final _node = FocusNode();
+  bool _focused = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _node.addListener(() {
+      if (mounted) setState(() => _focused = _node.hasFocus);
+    });
+  }
+
+  @override
+  void dispose() {
+    _node.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final iconColor =
+        _focused ? AppBrand.green : const Color(0xFF9ca3af);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 2, bottom: 7),
+          child: Text(
+            widget.label,
+            style: TextStyle(
+              color: Colors.white
+                  .withValues(alpha: _focused ? 0.95 : 0.80),
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+        AnimatedContainer(
+          duration: AppMotion.base,
+          curve: AppMotion.ease,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: _focused
+                ? [
+                    BoxShadow(
+                      color: AppBrand.green.withValues(alpha: 0.28),
+                      blurRadius: 14,
+                      spreadRadius: 1,
+                    ),
+                  ]
+                : const [],
+          ),
+          child: TextFormField(
+            controller: widget.controller,
+            focusNode: _node,
+            keyboardType: widget.keyboardType,
+            obscureText: widget.obscure,
+            style: const TextStyle(color: Colors.white),
+            cursorColor: AppBrand.green,
+            decoration: InputDecoration(
+              hintText: widget.hint,
+              hintStyle:
+                  TextStyle(color: Colors.white.withValues(alpha: 0.32)),
+              prefixIcon: Icon(widget.icon, color: iconColor, size: 20),
+              suffixIcon: widget.suffix,
+              filled: true,
+              fillColor: Colors.white.withValues(alpha: _focused ? 0.10 : 0.07),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide:
+                    BorderSide(color: Colors.white.withValues(alpha: 0.10)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: AppBrand.green, width: 1.6),
+              ),
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFFef4444)),
+              ),
+              focusedErrorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFFef4444)),
+              ),
+              errorStyle: const TextStyle(color: Color(0xFFfca5a5)),
+            ),
+            validator: widget.validator,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Envoltorio que reduce ligeramente la escala al presionar (feedback táctil).
+class _PressableScale extends StatefulWidget {
+  final Widget child;
+  final VoidCallback onTap;
+  const _PressableScale({required this.child, required this.onTap});
+
+  @override
+  State<_PressableScale> createState() => _PressableScaleState();
+}
+
+class _PressableScaleState extends State<_PressableScale> {
+  bool _down = false;
+
+  @override
+  Widget build(BuildContext context) => GestureDetector(
+        onTapDown: (_) => setState(() => _down = true),
+        onTapUp: (_) => setState(() => _down = false),
+        onTapCancel: () => setState(() => _down = false),
+        onTap: widget.onTap,
+        child: AnimatedScale(
+          scale: _down ? 0.97 : 1.0,
+          duration: const Duration(milliseconds: 120),
+          curve: Curves.easeOut,
+          child: widget.child,
         ),
       );
 }

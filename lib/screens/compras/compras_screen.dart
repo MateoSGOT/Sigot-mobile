@@ -4,6 +4,7 @@ import '../../config/app_theme.dart';
 import '../../providers/compra_provider.dart';
 import '../../services/api_service.dart';
 import '../../widgets/compra_card.dart';
+import '../../widgets/detail_ui.dart';
 import '../../widgets/filter_chips.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/empty_state_widget.dart';
@@ -97,12 +98,15 @@ class _ComprasScreenState extends State<ComprasScreen> {
           child: ListView.builder(
             padding: const EdgeInsets.only(bottom: 12),
             itemCount: items.length,
-            itemBuilder: (ctx, i) => CompraCard(
-              compra: items[i],
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => CompraDetailScreen(compra: items[i]),
+            itemBuilder: (ctx, i) => AnimatedEntrance(
+              index: i,
+              child: CompraCard(
+                compra: items[i],
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => CompraDetailScreen(compra: items[i]),
+                  ),
                 ),
               ),
             ),
