@@ -1,4 +1,3 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../config/app_theme.dart';
@@ -199,31 +198,29 @@ class _ShimmerWordmarkState extends State<_ShimmerWordmark>
           animation: _c,
           builder: (context, _) => ShaderMask(
             blendMode: BlendMode.srcIn,
-            shaderCallback: (bounds) => LinearGradient(
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
-              colors: [
-                Colors.transparent,
-                Colors.white.withValues(alpha: 0.75),
-                Colors.transparent,
-              ],
-              stops: const [0.35, 0.5, 0.65],
-              transform: _SlideGradient(_c.value),
-            ).createShader(bounds),
+            shaderCallback: (bounds) {
+              // Barrido de luz sobre las letras usando stops móviles (sin
+              // Matrix4/GradientTransform, para máxima compatibilidad).
+              final center = _c.value * 1.6 - 0.3;
+              const half = 0.18;
+              final a = (center - half).clamp(0.0, 0.996).toDouble();
+              final b = center.clamp(a + 0.002, 0.998).toDouble();
+              final d = (center + half).clamp(b + 0.002, 1.0).toDouble();
+              return LinearGradient(
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+                colors: [
+                  Colors.white.withValues(alpha: 0),
+                  Colors.white.withValues(alpha: 0.8),
+                  Colors.white.withValues(alpha: 0),
+                ],
+                stops: [a, b, d],
+              ).createShader(bounds);
+            },
             child: Text('SIGOT', style: style),
           ),
         ),
       ],
     );
   }
-}
-
-/// Desplaza un degradado horizontalmente de -ancho a +ancho según `t` (0..1).
-class _SlideGradient extends GradientTransform {
-  final double t;
-  const _SlideGradient(this.t);
-
-  @override
-  Matrix4? transform(Rect bounds, {TextDirection? textDirection}) =>
-      Matrix4.translationValues((t * 2 - 1) * bounds.width, 0, 0);
 }
