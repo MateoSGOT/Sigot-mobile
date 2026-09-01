@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../config/app_theme.dart';
+import '../../models/auth_model.dart';
 import '../../models/portal_models.dart';
 import '../../models/vehiculo_model.dart';
 import '../../providers/auth_provider.dart';
@@ -269,7 +270,101 @@ class _PortalScreenState extends State<PortalScreen> {
                 value: (c.telefono ?? '').isEmpty ? '—' : c.telefono!),
           ],
         ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+          child: OutlinedButton.icon(
+            onPressed: () => _editarPerfil(c),
+            icon: const Icon(Icons.edit_outlined, size: 18),
+            label: const Text('Editar datos de contacto'),
+          ),
+        ),
       ],
+    );
+  }
+
+  Future<void> _editarPerfil(ClienteModel c) async {
+    final correoCtrl = TextEditingController(text: c.correo ?? '');
+    final telCtrl = TextEditingController(text: c.telefono ?? '');
+    final formKey = GlobalKey<FormState>();
+    bool saving = false;
+
+    await showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setLocal) => AlertDialog(
+          title: const Text('Editar datos de contacto'),
+          content: Form(
+            key: formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: correoCtrl,
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: const InputDecoration(labelText: 'Correo'),
+                  validator: (v) => (v == null || !v.contains('@'))
+                      ? 'Correo inválido'
+                      : null,
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: telCtrl,
+                  keyboardType: TextInputType.phone,
+                  decoration: const InputDecoration(labelText: 'Teléfono'),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: saving ? null : () => Navigator.pop(ctx),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: saving
+                  ? null
+                  : () async {
+                      if (!formKey.currentState!.validate()) return;
+                      setLocal(() => saving = true);
+                      final cliente =
+                          await context.read<PortalProvider>().updatePerfil(
+                                correo: correoCtrl.text.trim(),
+                                telefono: telCtrl.text.trim(),
+                              );
+                      if (!ctx.mounted) return;
+                      if (cliente != null) {
+                        await context.read<AuthProvider>().updateCliente(cliente);
+                        if (!ctx.mounted) return;
+                        Navigator.pop(ctx);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Datos actualizados'),
+                            backgroundColor: AppColors.primary,
+                          ),
+                        );
+                      } else {
+                        setLocal(() => saving = false);
+                        ScaffoldMessenger.of(ctx).showSnackBar(
+                          SnackBar(
+                            content: Text(context.read<PortalProvider>().error ??
+                                'No se pudo actualizar'),
+                            backgroundColor: AppColors.error,
+                          ),
+                        );
+                      }
+                    },
+              child: saving
+                  ? const SizedBox(
+                      height: 18,
+                      width: 18,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.white),
+                    )
+                  : const Text('Guardar'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

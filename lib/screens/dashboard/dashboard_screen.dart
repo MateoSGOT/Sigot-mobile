@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../config/app_theme.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/dashboard_provider.dart';
 import '../../services/api_service.dart';
 import '../../utils/format.dart';
@@ -17,10 +18,13 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
+  static const _permisoResumen = 'DASHBOARD.VER_COMPRAS';
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!context.read<AuthProvider>().hasPermiso(_permisoResumen)) return;
       final p = context.read<DashboardProvider>();
       if (p.state == LoadState.idle) p.load();
     });
@@ -28,6 +32,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (!context.watch<AuthProvider>().hasPermiso(_permisoResumen)) {
+      return const EmptyStateWidget(
+        icon: Icons.lock_outline,
+        message:
+            'No tienes permiso para ver el dashboard financiero.\nPídele a un administrador que te lo habilite.',
+      );
+    }
+
     final p = context.watch<DashboardProvider>();
     final loading = p.state == LoadState.loading;
 

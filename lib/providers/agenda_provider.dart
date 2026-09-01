@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/agenda_model.dart';
+import '../models/auth_model.dart';
 import '../models/orden_model.dart';
 import '../services/agenda_service.dart';
 import '../services/api_service.dart';
@@ -10,12 +11,14 @@ class AgendaProvider extends ChangeNotifier {
   LoadState _state = LoadState.idle;
   List<AgendaModel> _items = [];
   List<ClienteCatalogo> _clientes = [];
+  List<EmpleadoModel> _empleados = [];
   String? _error;
   String _search = '';
 
   LoadState get state => _state;
   String? get error => _error;
   List<ClienteCatalogo> get clientes => _clientes;
+  List<EmpleadoModel> get empleados => _empleados;
 
   List<AgendaModel> get filtered {
     if (_search.isEmpty) return _items;
@@ -57,6 +60,16 @@ class AgendaProvider extends ChangeNotifier {
     } catch (_) {}
   }
 
+  /// Carga la lista de empleados para asignar la cita. Si el rol logueado no
+  /// tiene permiso para listar empleados (ej. Mecánico), falla en silencio y
+  /// el formulario sigue asignando la cita al empleado logueado.
+  Future<void> loadEmpleados() async {
+    try {
+      _empleados = await _service.getEmpleados();
+      notifyListeners();
+    } catch (_) {}
+  }
+
   Future<bool> crearCita(Map<String, dynamic> body) async {
     try {
       final nueva = await _service.crearCita(body);
@@ -70,15 +83,17 @@ class AgendaProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> generarOrden(int idAgenda) async {
+  /// Genera la orden de trabajo de una cita. Devuelve el id de la orden
+  /// creada (para navegar directo a su detalle) o `null` si falló.
+  Future<int?> generarOrden(int idAgenda) async {
     try {
-      await _service.generarOrden(idAgenda);
+      final orden = await _service.generarOrden(idAgenda);
       await load();
-      return true;
+      return orden.idOrden;
     } on ApiException catch (e) {
       _error = e.message;
       notifyListeners();
-      return false;
+      return null;
     }
   }
 }

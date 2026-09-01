@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../config/app_theme.dart';
+import '../../models/auth_model.dart';
 import '../../models/orden_model.dart';
 import '../../models/vehiculo_model.dart';
 import '../../providers/agenda_provider.dart';
@@ -21,11 +22,12 @@ class _AgendaFormScreenState extends State<AgendaFormScreen> {
 
   ClienteCatalogo? _cliente;
   VehiculoModel? _vehiculo;
+  EmpleadoModel? _empleado;
   DateTime? _fecha;
   String? _hora;
   bool _loading = false;
 
-  final List<String> _horarios = List.generate(
+  final List<String> _horariosBase = List.generate(
     21,
     (i) {
       final h = 8 + i ~/ 2;
@@ -34,11 +36,29 @@ class _AgendaFormScreenState extends State<AgendaFormScreen> {
     },
   );
 
+  /// Horarios disponibles para la fecha seleccionada: si es hoy, se excluyen
+  /// las horas que ya pasaron.
+  List<String> get _horarios {
+    if (_fecha == null) return _horariosBase;
+    final ahora = DateTime.now();
+    final esHoy = _fecha!.year == ahora.year &&
+        _fecha!.month == ahora.month &&
+        _fecha!.day == ahora.day;
+    if (!esHoy) return _horariosBase;
+    return _horariosBase.where((h) {
+      final p = h.split(':');
+      final slot =
+          DateTime(ahora.year, ahora.month, ahora.day, int.parse(p[0]), int.parse(p[1]));
+      return slot.isAfter(ahora);
+    }).toList();
+  }
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<AgendaProvider>().loadClientes();
+      context.read<AgendaProvider>().loadEmpleados();
       context.read<VehiculoProvider>().load();
     });
   }
@@ -68,7 +88,7 @@ class _AgendaFormScreenState extends State<AgendaFormScreen> {
     }
     setState(() => _loading = true);
 
-    final empleado = context.read<AuthProvider>().empleado!;
+    final empleado = _empleado ?? context.read<AuthProvider>().empleado!;
     final body = {
       'Id_Cliente': _cliente!.idCliente,
       'Id_Vehiculo': _vehiculo!.idVehiculo,
@@ -92,6 +112,17 @@ class _AgendaFormScreenState extends State<AgendaFormScreen> {
       _showError(
           context.read<AgendaProvider>().error ?? 'Error al crear cita');
     }
+  }
+
+  /// Empleado preseleccionado en el dropdown: el usuario logueado si aparece
+  /// en la lista cargada, si no el primero disponible.
+  EmpleadoModel _empleadoPorDefecto(
+      BuildContext context, List<EmpleadoModel> empleados) {
+    final actual = context.read<AuthProvider>().empleado;
+    return empleados.firstWhere(
+      (e) => e.idEmpleado == actual?.idEmpleado,
+      orElse: () => empleados.first,
+    );
   }
 
   void _showError(String msg) {
@@ -153,6 +184,23 @@ class _AgendaFormScreenState extends State<AgendaFormScreen> {
                 validator: (v) =>
                     v == null ? 'Selecciona un vehículo' : null,
               ),
+              if (agendaProv.empleados.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                DropdownButtonFormField<EmpleadoModel>(
+                  initialValue: _empleado ?? _empleadoPorDefecto(context, agendaProv.empleados),
+                  decoration: const InputDecoration(
+                    labelText: 'Empleado asignado',
+                    prefixIcon: Icon(Icons.badge_outlined),
+                  ),
+                  items: agendaProv.empleados
+                      .map((e) => DropdownMenuItem(
+                            value: e,
+                            child: Text(e.nombre),
+                          ))
+                      .toList(),
+                  onChanged: (v) => setState(() => _empleado = v),
+                ),
+              ],
               const SizedBox(height: 16),
               InkWell(
                 onTap: () async {
@@ -163,7 +211,17 @@ class _AgendaFormScreenState extends State<AgendaFormScreen> {
                     lastDate:
                         DateTime.now().add(const Duration(days: 365)),
                   );
-                  if (d != null) setState(() => _fecha = d);
+                  if (d != null) {
+                    setState(() {
+                      _fecha = d;
+                      // La hora elegida puede quedar en el pasado al cambiar
+                      // de fecha (ej. se pasó a "hoy"): se limpia si ya no
+                      // está entre los horarios disponibles.
+                      if (_hora != null && !_horarios.contains(_hora)) {
+                        _hora = null;
+                      }
+                    });
+                  }
                 },
                 child: InputDecorator(
                   decoration: const InputDecoration(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../models/auth_model.dart';
 import '../models/portal_models.dart';
 import '../models/vehiculo_model.dart';
 import '../services/portal_service.dart';
@@ -48,6 +49,25 @@ class PortalProvider extends ChangeNotifier {
       return e.message;
     } catch (_) {
       return 'No se pudo agendar la cita';
+    }
+  }
+
+  /// Actualiza correo/teléfono del cliente. Devuelve el cliente actualizado,
+  /// o `null` si falló (el mensaje de error queda en [error]).
+  Future<ClienteModel?> updatePerfil({String? correo, String? telefono}) async {
+    try {
+      final cliente =
+          await _service.updatePerfil(correo: correo, telefono: telefono);
+      _error = null;
+      return cliente;
+    } on ApiException catch (e) {
+      _error = e.message;
+      notifyListeners();
+      return null;
+    } catch (_) {
+      _error = 'No se pudo actualizar el perfil';
+      notifyListeners();
+      return null;
     }
   }
 

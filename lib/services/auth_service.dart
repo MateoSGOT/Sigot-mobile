@@ -50,6 +50,18 @@ class AuthService {
     }
   }
 
+  /// Nombres de permisos del rol (ej. 'DASHBOARD.VER_COMPRAS'). Lista vacía
+  /// si el rol no tiene permisos o si la consulta falla.
+  Future<List<String>> getPermisos(int idRol) async {
+    try {
+      final res = await _api.get('${ApiConfig.permisosRol}/$idRol/nombres');
+      final list = (res is Map ? res['data'] as List? : res as List?) ?? [];
+      return list.map((e) => e.toString()).toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
   Future<void> recuperarPassword(String correo) async {
     await _api.post(
       ApiConfig.recuperarPassword,
@@ -80,6 +92,13 @@ class AuthService {
             EmpleadoModel.fromJson(jsonDecode(json) as Map<String, dynamic>),
       );
     }
+  }
+
+  /// Actualiza el cliente cacheado localmente tras editar el perfil.
+  Future<void> saveCliente(ClienteModel cliente) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+        ApiConfig.clienteKey, jsonEncode(cliente.toJson()));
   }
 
   Future<void> logout() async {

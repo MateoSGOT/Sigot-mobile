@@ -1,4 +1,5 @@
 import '../config/api_config.dart';
+import '../models/auth_model.dart';
 import '../models/portal_models.dart';
 import '../models/vehiculo_model.dart';
 import 'api_service.dart';
@@ -42,6 +43,18 @@ class PortalService {
   }
 
   Future<void> cancelCita(int id, String motivo) async {
-    await _api.patch('${ApiConfig.portalCitas}/$id/cancelar', {'motivo': motivo});
+    await _api.patch('${ApiConfig.portalCitas}/$id/cancelar',
+        body: {'motivo': motivo});
+  }
+
+  Future<ClienteModel> updatePerfil({String? correo, String? telefono}) async {
+    final body = <String, dynamic>{
+      if (correo != null) 'Correo': correo,
+      if (telefono != null) 'Contacto': telefono,
+    };
+    final res =
+        await _api.put(ApiConfig.portalPerfil, body) as Map<String, dynamic>;
+    final data = res['data'] as Map<String, dynamic>? ?? res;
+    return ClienteModel.fromJson(data);
   }
 }

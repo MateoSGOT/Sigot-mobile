@@ -81,17 +81,31 @@ class AgendaDetailScreen extends StatelessWidget {
           icon: Icons.post_add,
           label: 'Generar orden',
           onTap: () async {
-            final ok = await prov.generarOrden(agenda.idAgenda);
+            final idOrden = await prov.generarOrden(agenda.idAgenda);
             if (!ctx.mounted) return;
-            ScaffoldMessenger.of(ctx).showSnackBar(
-              SnackBar(
-                content: Text(ok
-                    ? 'Orden generada exitosamente'
-                    : prov.error ?? 'Error al generar orden'),
-                backgroundColor: ok ? AppColors.primary : AppColors.error,
-              ),
-            );
-            if (ok) Navigator.pop(ctx);
+            if (idOrden != null) {
+              ScaffoldMessenger.of(ctx).showSnackBar(
+                const SnackBar(
+                  content: Text('Orden generada exitosamente'),
+                  backgroundColor: AppColors.primary,
+                ),
+              );
+              // Va directo al detalle de la orden recién creada, en vez de
+              // regresar a la lista de agenda.
+              Navigator.pushReplacement(
+                ctx,
+                MaterialPageRoute(
+                  builder: (_) => OrdenDetailScreen(idOrden: idOrden),
+                ),
+              );
+            } else {
+              ScaffoldMessenger.of(ctx).showSnackBar(
+                SnackBar(
+                  content: Text(prov.error ?? 'Error al generar orden'),
+                  backgroundColor: AppColors.error,
+                ),
+              );
+            }
           },
         ),
       );

@@ -1,5 +1,6 @@
 import '../config/api_config.dart';
 import '../models/agenda_model.dart';
+import '../models/auth_model.dart';
 import '../models/orden_model.dart';
 import 'api_service.dart';
 
@@ -29,7 +30,18 @@ class AgendaService {
     return AgendaModel.fromJson(data);
   }
 
-  Future<void> generarOrden(int idAgenda) async {
-    await _api.post('${ApiConfig.agenda}/$idAgenda/orden', {});
+  Future<OrdenModel> generarOrden(int idAgenda) async {
+    final res = await _api.post('${ApiConfig.agenda}/$idAgenda/orden', {})
+        as Map<String, dynamic>;
+    final data = res['data'] as Map<String, dynamic>? ?? res;
+    return OrdenModel.fromJson(data);
+  }
+
+  Future<List<EmpleadoModel>> getEmpleados() async {
+    final res = await _api.get(ApiConfig.empleados) as Map<String, dynamic>;
+    final list = res['data'] as List? ?? [];
+    return list
+        .map((e) => EmpleadoModel.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 }

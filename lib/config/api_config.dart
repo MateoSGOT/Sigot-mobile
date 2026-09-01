@@ -9,6 +9,8 @@ class ApiConfig {
   static const String ordenes = '/api/ordenes';
   static const String compras = '/api/compras';
   static const String clientes = '/api/clientes';
+  static const String empleados = '/api/empleados';
+  static const String permisosRol = '/api/permisos/rol';
 
   // Dashboard / reportes (paridad con dashboardService.js de la web)
   static const String dashboardResumen = '/api/dashboard/resumen';
@@ -21,6 +23,7 @@ class ApiConfig {
   static const String portalVehiculos = '/api/portal/vehiculos';
   static const String portalOrdenes = '/api/portal/ordenes';
   static const String portalCitas = '/api/portal/citas';
+  static const String portalPerfil = '/api/portal/perfil';
 
   static const String tokenKey = 'sigot_token';
   static const String empleadoKey = 'sigot_empleado';
