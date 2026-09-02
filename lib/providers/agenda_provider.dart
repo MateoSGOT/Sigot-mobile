@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/agenda_model.dart';
 import '../models/auth_model.dart';
+import '../models/novedad_model.dart';
 import '../models/orden_model.dart';
 import '../services/agenda_service.dart';
 import '../services/api_service.dart';
@@ -12,6 +13,7 @@ class AgendaProvider extends ChangeNotifier {
   List<AgendaModel> _items = [];
   List<ClienteCatalogo> _clientes = [];
   List<EmpleadoModel> _empleados = [];
+  List<NovedadModel> _novedades = [];
   String? _error;
   String _search = '';
   int _statusFilter = 0; // 0=Todas, 1=Pendientes, 2=Realizadas, 3=Canceladas
@@ -93,6 +95,26 @@ class AgendaProvider extends ChangeNotifier {
       _empleados = await _service.getEmpleados();
       notifyListeners();
     } catch (_) {}
+  }
+
+  /// Carga las novedades (ausencias) de empleados. Falla en silencio: sin
+  /// permiso para listarlas, el formulario simplemente no filtra por ellas.
+  Future<void> loadNovedades() async {
+    try {
+      _novedades = await _service.getNovedades();
+      notifyListeners();
+    } catch (_) {}
+  }
+
+  /// Empleados con una novedad vigente en [ymd] ('yyyy-MM-dd'): no deben
+  /// aparecer como opción para asignarles una cita ese día.
+  Set<int> empleadosBloqueadosEnFecha(String? ymd) {
+    if (ymd == null || ymd.isEmpty) return {};
+    return _novedades
+        .where((n) => n.cubreFecha(ymd))
+        .map((n) => n.idEmpleado)
+        .whereType<int>()
+        .toSet();
   }
 
   Future<bool> crearCita(Map<String, dynamic> body) async {

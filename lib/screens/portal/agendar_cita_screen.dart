@@ -193,13 +193,13 @@ class _AgendarCitaScreenState extends State<AgendarCitaScreen> {
                         ? 'Elige primero una fecha'
                         : 'Cualquiera disponible',
                     Icons.engineering),
+                // Con novedad ese día: no aparece en la lista (antes solo se
+                // deshabilitaba con "(no disponible)", pero seguía apareciendo).
                 items: disponibles
+                    .where((e) => e.disponible)
                     .map((e) => DropdownMenuItem(
                           value: e.idEmpleado,
-                          enabled: e.disponible,
-                          child: Text(e.disponible
-                              ? e.nombre
-                              : '${e.nombre} (no disponible)'),
+                          child: Text(e.nombre),
                         ))
                     .toList(),
                 onChanged: _fecha == null

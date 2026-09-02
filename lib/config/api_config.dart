@@ -10,6 +10,7 @@ class ApiConfig {
   static const String compras = '/api/compras';
   static const String clientes = '/api/clientes';
   static const String empleados = '/api/empleados';
+  static const String novedades = '/api/novedades';
   static const String permisosRol = '/api/permisos/rol';
 
   // Dashboard / reportes (paridad con dashboardService.js de la web)

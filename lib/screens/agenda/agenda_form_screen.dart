@@ -59,6 +59,7 @@ class _AgendaFormScreenState extends State<AgendaFormScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<AgendaProvider>().loadClientes();
       context.read<AgendaProvider>().loadEmpleados();
+      context.read<AgendaProvider>().loadNovedades();
       context.read<VehiculoProvider>().load();
     });
   }
@@ -131,12 +132,32 @@ class _AgendaFormScreenState extends State<AgendaFormScreen> {
     );
   }
 
+  String? get _fechaYmd =>
+      _fecha != null ? DateFormat('yyyy-MM-dd').format(_fecha!) : null;
+
+  /// Empleados sin una novedad vigente en la fecha elegida: no deben
+  /// aparecer como opción para asignarles la cita (antes se listaban todos
+  /// sin importar ausencias).
+  List<EmpleadoModel> _empleadosDisponibles(AgendaProvider prov) {
+    final bloqueados = prov.empleadosBloqueadosEnFecha(_fechaYmd);
+    return prov.empleados
+        .where((e) => !bloqueados.contains(e.idEmpleado))
+        .toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     final agendaProv = context.watch<AgendaProvider>();
     final vehProv = context.watch<VehiculoProvider>();
     final clientes = agendaProv.clientes;
     final vehiculos = _vehiculosCliente(vehProv.all);
+    final empleadosDisponibles = _empleadosDisponibles(agendaProv);
+    if (_empleado != null && !empleadosDisponibles.contains(_empleado)) {
+      // El empleado elegido quedó con una novedad para la fecha actual (o
+      // cambió la fecha): se limpia para forzar a elegir uno disponible.
+      WidgetsBinding.instance
+          .addPostFrameCallback((_) => setState(() => _empleado = null));
+    }
 
     return Scaffold(
       appBar: AppBar(title: const Text('Nueva cita')),
@@ -184,21 +205,29 @@ class _AgendaFormScreenState extends State<AgendaFormScreen> {
                 validator: (v) =>
                     v == null ? 'Selecciona un vehículo' : null,
               ),
-              if (agendaProv.empleados.isNotEmpty) ...[
+              if (empleadosDisponibles.isNotEmpty) ...[
                 const SizedBox(height: 16),
                 DropdownButtonFormField<EmpleadoModel>(
-                  initialValue: _empleado ?? _empleadoPorDefecto(context, agendaProv.empleados),
+                  key: ValueKey('emp-${_fechaYmd ?? ''}'),
+                  initialValue: _empleado ??
+                      _empleadoPorDefecto(context, empleadosDisponibles),
                   decoration: const InputDecoration(
                     labelText: 'Empleado asignado',
                     prefixIcon: Icon(Icons.badge_outlined),
                   ),
-                  items: agendaProv.empleados
+                  items: empleadosDisponibles
                       .map((e) => DropdownMenuItem(
                             value: e,
                             child: Text(e.nombre),
                           ))
                       .toList(),
                   onChanged: (v) => setState(() => _empleado = v),
+                ),
+              ] else if (_fecha != null) ...[
+                const SizedBox(height: 16),
+                const Text(
+                  'Ningún empleado disponible para la fecha elegida (todos tienen una novedad).',
+                  style: TextStyle(color: AppColors.error, fontSize: 13),
                 ),
               ],
               const SizedBox(height: 16),
