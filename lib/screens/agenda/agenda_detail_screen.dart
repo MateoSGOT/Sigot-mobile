@@ -20,9 +20,17 @@ class AgendaDetailScreen extends StatelessWidget {
     }
   }
 
+  Color _colorEstado(String estado) => switch (estado) {
+        'Pendiente' => AppColors.badgePendiente,
+        'Confirmada' => AppColors.badgeEnProceso,
+        'Atendida' => AppColors.badgeRealizado,
+        'Cancelada' => AppColors.badgeInactivo,
+        'NoAsistio' => AppColors.badgeInactivo,
+        _ => AppColors.badgeInactivo,
+      };
+
   @override
   Widget build(BuildContext context) {
-    final realizado = agenda.estado == 1;
     return Scaffold(
       appBar: AppBar(title: const Text('Detalle de cita')),
       body: ListView(
@@ -33,8 +41,7 @@ class AgendaDetailScreen extends StatelessWidget {
             title: 'Cita',
             subtitle:
                 '${_formatFecha(agenda.fechaAgendamiento)} · ${agenda.hora}',
-            badge: _badge(realizado ? 'Realizado' : 'Pendiente',
-                realizado ? AppColors.badgeRealizado : AppColors.badgePendiente),
+            badge: _badge(agenda.estadoCita, _colorEstado(agenda.estadoCita)),
           ),
           DetailGroup(
             title: 'Información',

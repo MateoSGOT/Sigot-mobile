@@ -14,25 +14,50 @@ class AgendaProvider extends ChangeNotifier {
   List<EmpleadoModel> _empleados = [];
   String? _error;
   String _search = '';
+  int _statusFilter = 0; // 0=Todas, 1=Pendientes, 2=Realizadas, 3=Canceladas
 
   LoadState get state => _state;
   String? get error => _error;
   List<ClienteCatalogo> get clientes => _clientes;
   List<EmpleadoModel> get empleados => _empleados;
+  int get statusFilter => _statusFilter;
+
+  /// Agrupa los estados reales de la cita en los 3 baldes que pide el
+  /// filtro: Pendientes (incluye Confirmada), Realizadas (Atendida) y
+  /// Canceladas (incluye NoAsistio).
+  static int _bucket(AgendaModel a) => switch (a.estadoCita) {
+        'Atendida' => 2,
+        'Cancelada' || 'NoAsistio' => 3,
+        _ => 1, // Pendiente, Confirmada
+      };
 
   List<AgendaModel> get filtered {
-    if (_search.isEmpty) return _items;
-    final q = _search.toLowerCase();
-    return _items
-        .where((a) =>
-            a.cliente.toLowerCase().contains(q) ||
-            a.vehiculo.toLowerCase().contains(q) ||
-            a.empleado.toLowerCase().contains(q))
-        .toList();
+    var items = _items;
+    if (_search.isNotEmpty) {
+      final q = _search.toLowerCase();
+      items = items
+          .where((a) =>
+              a.cliente.toLowerCase().contains(q) ||
+              a.vehiculo.toLowerCase().contains(q) ||
+              a.empleado.toLowerCase().contains(q))
+          .toList();
+    }
+    if (_statusFilter != 0) {
+      items = items.where((a) => _bucket(a) == _statusFilter).toList();
+    } else {
+      // Por defecto: pendientes primero, luego realizadas, luego canceladas.
+      items = [...items]..sort((a, b) => _bucket(a).compareTo(_bucket(b)));
+    }
+    return items;
   }
 
   void setSearch(String v) {
     _search = v;
+    notifyListeners();
+  }
+
+  void setStatusFilter(int v) {
+    _statusFilter = v;
     notifyListeners();
   }
 

@@ -13,12 +13,24 @@ class PortalProvider extends ChangeNotifier {
   List<VehiculoModel> _vehiculos = [];
   List<PortalOrden> _ordenes = [];
   List<PortalCita> _citas = [];
+  List<EmpleadoDisponible> _empleadosDisponibles = [];
 
   LoadState get state => _state;
   String? get error => _error;
   List<VehiculoModel> get vehiculos => _vehiculos;
   List<PortalOrden> get ordenes => _ordenes;
   List<PortalCita> get citas => _citas;
+  List<EmpleadoDisponible> get empleadosDisponibles => _empleadosDisponibles;
+
+  /// Carga los mecánicos/técnicos disponibles para agendar en [fecha]
+  /// (formato yyyy-MM-dd). Falla en silencio: si no carga, el formulario
+  /// simplemente no muestra el selector y el backend asigna uno por defecto.
+  Future<void> loadEmpleadosDisponibles(String fecha) async {
+    try {
+      _empleadosDisponibles = await _service.getEmpleadosDisponibles(fecha);
+      notifyListeners();
+    } catch (_) {}
+  }
 
   Future<void> load() async {
     _state = LoadState.loading;
@@ -54,10 +66,11 @@ class PortalProvider extends ChangeNotifier {
 
   /// Actualiza correo/teléfono del cliente. Devuelve el cliente actualizado,
   /// o `null` si falló (el mensaje de error queda en [error]).
-  Future<ClienteModel?> updatePerfil({String? correo, String? telefono}) async {
+  Future<ClienteModel?> updatePerfil(
+      {String? correo, String? telefono, String? documento}) async {
     try {
-      final cliente =
-          await _service.updatePerfil(correo: correo, telefono: telefono);
+      final cliente = await _service.updatePerfil(
+          correo: correo, telefono: telefono, documento: documento);
       _error = null;
       return cliente;
     } on ApiException catch (e) {

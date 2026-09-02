@@ -5,8 +5,10 @@ import '../../providers/agenda_provider.dart';
 import '../../services/api_service.dart';
 import '../../widgets/agenda_card.dart';
 import '../../widgets/detail_ui.dart';
+import '../../widgets/filter_chips.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/empty_state_widget.dart';
+import '../ordenes/orden_detail_screen.dart';
 import 'agenda_detail_screen.dart';
 import 'agenda_form_screen.dart';
 
@@ -60,6 +62,13 @@ class _AgendaScreenState extends State<AgendaScreen> {
             onChanged: provider.setSearch,
           ),
         ),
+        const SizedBox(height: 4),
+        SigotFilterChips(
+          labels: const ['Todas', 'Pendientes', 'Realizadas', 'Canceladas'],
+          selected: provider.statusFilter,
+          onSelected: provider.setStatusFilter,
+        ),
+        const SizedBox(height: 8),
         Expanded(child: _buildBody(provider)),
       ],
     );
@@ -132,8 +141,9 @@ class _AgendaScreenState extends State<AgendaScreen> {
   }
 
   void _goToOrden(int ordenId) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Ver orden #$ordenId')),
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => OrdenDetailScreen(idOrden: ordenId)),
     );
   }
 }

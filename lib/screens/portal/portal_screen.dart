@@ -275,7 +275,7 @@ class _PortalScreenState extends State<PortalScreen> {
           child: OutlinedButton.icon(
             onPressed: () => _editarPerfil(c),
             icon: const Icon(Icons.edit_outlined, size: 18),
-            label: const Text('Editar datos de contacto'),
+            label: const Text('Editar mis datos'),
           ),
         ),
       ],
@@ -285,6 +285,7 @@ class _PortalScreenState extends State<PortalScreen> {
   Future<void> _editarPerfil(ClienteModel c) async {
     final correoCtrl = TextEditingController(text: c.correo ?? '');
     final telCtrl = TextEditingController(text: c.telefono ?? '');
+    final docCtrl = TextEditingController(text: c.documento ?? '');
     final formKey = GlobalKey<FormState>();
     bool saving = false;
 
@@ -292,12 +293,22 @@ class _PortalScreenState extends State<PortalScreen> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setLocal) => AlertDialog(
-          title: const Text('Editar datos de contacto'),
+          title: const Text('Editar mis datos'),
           content: Form(
             key: formKey,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                TextFormField(
+                  controller: docCtrl,
+                  keyboardType: TextInputType.text,
+                  decoration: InputDecoration(
+                      labelText: c.tipoDocumento ?? 'Documento'),
+                  validator: (v) => (v == null || v.trim().isEmpty)
+                      ? 'El documento no puede estar vacío'
+                      : null,
+                ),
+                const SizedBox(height: 12),
                 TextFormField(
                   controller: correoCtrl,
                   keyboardType: TextInputType.emailAddress,
@@ -330,6 +341,7 @@ class _PortalScreenState extends State<PortalScreen> {
                           await context.read<PortalProvider>().updatePerfil(
                                 correo: correoCtrl.text.trim(),
                                 telefono: telCtrl.text.trim(),
+                                documento: docCtrl.text.trim(),
                               );
                       if (!ctx.mounted) return;
                       if (cliente != null) {

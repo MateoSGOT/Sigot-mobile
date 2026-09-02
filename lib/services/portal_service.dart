@@ -47,14 +47,26 @@ class PortalService {
         body: {'motivo': motivo});
   }
 
-  Future<ClienteModel> updatePerfil({String? correo, String? telefono}) async {
+  Future<ClienteModel> updatePerfil(
+      {String? correo, String? telefono, String? documento}) async {
     final body = <String, dynamic>{
       if (correo != null) 'Correo': correo,
       if (telefono != null) 'Contacto': telefono,
+      if (documento != null) 'Documento': documento,
     };
     final res =
         await _api.put(ApiConfig.portalPerfil, body) as Map<String, dynamic>;
     final data = res['data'] as Map<String, dynamic>? ?? res;
     return ClienteModel.fromJson(data);
+  }
+
+  Future<List<EmpleadoDisponible>> getEmpleadosDisponibles(
+      String fecha) async {
+    final res = await _api
+        .get('${ApiConfig.portalEmpleadosDisponibles}?fecha=$fecha');
+    return _asList(res)
+        .whereType<Map>()
+        .map((e) => EmpleadoDisponible.fromJson(Map<String, dynamic>.from(e)))
+        .toList();
   }
 }

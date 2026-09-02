@@ -81,10 +81,7 @@ class AgendaCard extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        EstadoBadge(
-                            estado: agenda.estado == 1
-                                ? 'Realizado'
-                                : 'Pendiente'),
+                        EstadoBadge(estado: agenda.estadoCita),
                         if (agenda.ordenId != null)
                           TextButton(
                             onPressed: onVerOrden,

@@ -242,6 +242,12 @@ class _AgendaFormScreenState extends State<AgendaFormScreen> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
+                // Se reconstruye desde cero cuando cambia la fecha: al ser un
+                // FormField, `initialValue` solo aplica en el primer build, y
+                // si no se fuerza un nuevo widget con `key` la lista de items
+                // (recalculada por `_horarios`) puede quedar desincronizada
+                // con la selección previa y bloquear el campo.
+                key: ValueKey(_fecha),
                 initialValue: _hora,
                 decoration: const InputDecoration(
                   labelText: 'Hora',

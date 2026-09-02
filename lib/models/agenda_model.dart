@@ -3,6 +3,7 @@ class AgendaModel {
   final String fechaAgendamiento;
   final String hora;
   final int estado;
+  final String estadoCita;
   final String? descripcion;
   final String cliente;
   final String vehiculo;
@@ -14,6 +15,7 @@ class AgendaModel {
     required this.fechaAgendamiento,
     required this.hora,
     required this.estado,
+    required this.estadoCita,
     this.descripcion,
     required this.cliente,
     required this.vehiculo,
@@ -26,6 +28,7 @@ class AgendaModel {
         fechaAgendamiento: (json['FechaAgendamiento'] ?? '') as String,
         hora: (json['Hora'] ?? '') as String,
         estado: (json['Estado'] ?? 0) as int,
+        estadoCita: (json['EstadoCita'] as String?) ?? 'Pendiente',
         descripcion: json['Descripcion'] as String?,
         cliente: (json['cliente'] ?? '') as String,
         vehiculo: (json['vehiculo'] ?? '') as String,

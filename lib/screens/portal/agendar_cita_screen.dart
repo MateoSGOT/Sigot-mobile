@@ -14,11 +14,10 @@ class _AgendarCitaScreenState extends State<AgendarCitaScreen> {
   int? _idVehiculo;
   DateTime? _fecha;
   String? _hora;
+  int? _idEmpleado;
   final _descCtrl = TextEditingController();
   bool _saving = false;
   String? _error;
-
-  late final List<String> _slots = _buildSlots();
 
   List<String> _buildSlots() {
     final s = <String>[];
@@ -27,6 +26,24 @@ class _AgendarCitaScreenState extends State<AgendarCitaScreen> {
       s.add('${h.toString().padLeft(2, '0')}:${mm.toString().padLeft(2, '0')}');
     }
     return s;
+  }
+
+  /// Horas disponibles para la fecha elegida: si es hoy, oculta las que ya
+  /// pasaron (antes se mostraban todas y solo se validaba al enviar).
+  List<String> get _slots {
+    final base = _buildSlots();
+    if (_fecha == null) return base;
+    final ahora = DateTime.now();
+    final esHoy = _fecha!.year == ahora.year &&
+        _fecha!.month == ahora.month &&
+        _fecha!.day == ahora.day;
+    if (!esHoy) return base;
+    return base.where((h) {
+      final p = h.split(':');
+      final slot = DateTime(
+          ahora.year, ahora.month, ahora.day, int.parse(p[0]), int.parse(p[1]));
+      return slot.isAfter(ahora);
+    }).toList();
   }
 
   @override
@@ -46,7 +63,14 @@ class _AgendarCitaScreenState extends State<AgendarCitaScreen> {
       firstDate: now,
       lastDate: now.add(const Duration(days: 365)),
     );
-    if (d != null) setState(() => _fecha = d);
+    if (d != null) {
+      setState(() {
+        _fecha = d;
+        if (_hora != null && !_slots.contains(_hora)) _hora = null;
+        _idEmpleado = null;
+      });
+      context.read<PortalProvider>().loadEmpleadosDisponibles(_fmtFecha(d));
+    }
   }
 
   Future<void> _submit() async {
@@ -70,7 +94,7 @@ class _AgendarCitaScreenState extends State<AgendarCitaScreen> {
       'Fecha': _fmtFecha(_fecha!),
       'Hora': _hora,
       'Descripcion': _descCtrl.text.trim(),
-      'Id_Empleado': '',
+      'Id_Empleado': _idEmpleado ?? '',
     });
     if (!mounted) return;
     setState(() => _saving = false);
@@ -148,12 +172,41 @@ class _AgendarCitaScreenState extends State<AgendarCitaScreen> {
           const SizedBox(height: 16),
           _label('Hora'),
           DropdownButtonFormField<String>(
+            key: ValueKey(_fecha),
             value: _hora,
             decoration: _dec('Selecciona la hora', Icons.schedule),
             items: _slots
                 .map((h) => DropdownMenuItem(value: h, child: Text(h)))
                 .toList(),
             onChanged: (v) => setState(() => _hora = v),
+          ),
+          const SizedBox(height: 16),
+          _label('Mecánico / técnico (opcional)'),
+          Consumer<PortalProvider>(
+            builder: (ctx, prov, _) {
+              final disponibles = prov.empleadosDisponibles;
+              return DropdownButtonFormField<int>(
+                key: ValueKey('emp-${_fecha ?? ''}'),
+                value: _idEmpleado,
+                decoration: _dec(
+                    _fecha == null
+                        ? 'Elige primero una fecha'
+                        : 'Cualquiera disponible',
+                    Icons.engineering),
+                items: disponibles
+                    .map((e) => DropdownMenuItem(
+                          value: e.idEmpleado,
+                          enabled: e.disponible,
+                          child: Text(e.disponible
+                              ? e.nombre
+                              : '${e.nombre} (no disponible)'),
+                        ))
+                    .toList(),
+                onChanged: _fecha == null
+                    ? null
+                    : (v) => setState(() => _idEmpleado = v),
+              );
+            },
           ),
           const SizedBox(height: 16),
           _label('Descripción (opcional)'),

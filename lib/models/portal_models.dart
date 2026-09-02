@@ -81,3 +81,28 @@ class PortalCita {
     );
   }
 }
+
+/// Mecánico/técnico disponible para agendar, según
+/// GET /api/portal/empleados-disponibles?fecha=... (el backend ya filtra
+/// por rol Mecánico/Técnico y por novedades del día).
+class EmpleadoDisponible {
+  final int idEmpleado;
+  final String nombre;
+  final String rol;
+  final bool disponible;
+
+  const EmpleadoDisponible({
+    required this.idEmpleado,
+    required this.nombre,
+    required this.rol,
+    required this.disponible,
+  });
+
+  factory EmpleadoDisponible.fromJson(Map<String, dynamic> json) =>
+      EmpleadoDisponible(
+        idEmpleado: _int(json['id_empleado']),
+        nombre: _str(json['Nombre']),
+        rol: _str(json['Rol']),
+        disponible: json['disponible'] as bool? ?? true,
+      );
+}

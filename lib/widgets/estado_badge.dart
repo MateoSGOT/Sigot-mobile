@@ -8,8 +8,12 @@ class EstadoBadge extends StatelessWidget {
 
   Color _color() => switch (estado) {
         'Pendiente' => AppColors.badgePendiente,
+        'Confirmada' => AppColors.badgeEnProceso,
         'En proceso' => AppColors.badgeEnProceso,
         'Realizado' => AppColors.badgeRealizado,
+        'Atendida' => AppColors.badgeRealizado,
+        'Cancelada' => AppColors.badgeInactivo,
+        'NoAsistio' => AppColors.badgeInactivo,
         _ => AppColors.badgeInactivo,
       };
 
