@@ -36,21 +36,36 @@ class _AgendaFormScreenState extends State<AgendaFormScreen> {
     },
   );
 
-  /// Horarios disponibles para la fecha seleccionada: si es hoy, se excluyen
-  /// las horas que ya pasaron.
+  /// Horarios disponibles para la fecha y empleado seleccionados: si es hoy,
+  /// se excluyen las horas que ya pasaron; si el empleado tiene una novedad
+  /// por rango de horas ese día, también se excluyen las horas que chocan con
+  /// ella (el resto del día sigue disponible -- ver
+  /// AgendaProvider.horaBloqueadaPorNovedad).
   List<String> get _horarios {
-    if (_fecha == null) return _horariosBase;
-    final ahora = DateTime.now();
-    final esHoy = _fecha!.year == ahora.year &&
-        _fecha!.month == ahora.month &&
-        _fecha!.day == ahora.day;
-    if (!esHoy) return _horariosBase;
-    return _horariosBase.where((h) {
-      final p = h.split(':');
-      final slot =
-          DateTime(ahora.year, ahora.month, ahora.day, int.parse(p[0]), int.parse(p[1]));
-      return slot.isAfter(ahora);
-    }).toList();
+    var result = _horariosBase;
+    if (_fecha != null) {
+      final ahora = DateTime.now();
+      final esHoy = _fecha!.year == ahora.year &&
+          _fecha!.month == ahora.month &&
+          _fecha!.day == ahora.day;
+      if (esHoy) {
+        result = result.where((h) {
+          final p = h.split(':');
+          final slot = DateTime(ahora.year, ahora.month, ahora.day,
+              int.parse(p[0]), int.parse(p[1]));
+          return slot.isAfter(ahora);
+        }).toList();
+      }
+    }
+    final empleado = _empleado ?? context.read<AuthProvider>().empleado;
+    if (empleado != null && _fechaYmd != null) {
+      final prov = context.read<AgendaProvider>();
+      result = result
+          .where((h) => !prov.horaBloqueadaPorNovedad(
+              empleado.idEmpleado, _fechaYmd, h))
+          .toList();
+    }
+    return result;
   }
 
   @override
@@ -221,7 +236,15 @@ class _AgendaFormScreenState extends State<AgendaFormScreen> {
                             child: Text(e.nombre),
                           ))
                       .toList(),
-                  onChanged: (v) => setState(() => _empleado = v),
+                  onChanged: (v) => setState(() {
+                    _empleado = v;
+                    // El técnico elegido puede tener novedades por rango de
+                    // horas distintas al anterior: se limpia la hora si ya
+                    // no está entre las disponibles para él.
+                    if (_hora != null && !_horarios.contains(_hora)) {
+                      _hora = null;
+                    }
+                  }),
                 ),
               ] else if (_fecha != null) ...[
                 const SizedBox(height: 16),
@@ -271,12 +294,13 @@ class _AgendaFormScreenState extends State<AgendaFormScreen> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                // Se reconstruye desde cero cuando cambia la fecha: al ser un
-                // FormField, `initialValue` solo aplica en el primer build, y
-                // si no se fuerza un nuevo widget con `key` la lista de items
-                // (recalculada por `_horarios`) puede quedar desincronizada
-                // con la selección previa y bloquear el campo.
-                key: ValueKey(_fecha),
+                // Se reconstruye desde cero cuando cambia la fecha o el
+                // empleado (ambos afectan `_horarios`): al ser un FormField,
+                // `initialValue` solo aplica en el primer build, y si no se
+                // fuerza un nuevo widget con `key` la lista de items puede
+                // quedar desincronizada con la selección previa y bloquear
+                // el campo.
+                key: ValueKey('$_fecha-${_empleado?.idEmpleado}'),
                 initialValue: _hora,
                 decoration: const InputDecoration(
                   labelText: 'Hora',

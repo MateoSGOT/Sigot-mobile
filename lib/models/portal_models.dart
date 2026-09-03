@@ -106,3 +106,18 @@ class EmpleadoDisponible {
         disponible: json['disponible'] as bool? ?? true,
       );
 }
+
+/// Franja horaria ocupada de un técnico en una fecha (cita ya agendada o
+/// novedad con rango horario), según GET /api/portal/horas-ocupadas. Cada
+/// franja va de [hora] a [hora] + [duracionMin].
+class HoraOcupada {
+  final String hora;
+  final int duracionMin;
+
+  const HoraOcupada({required this.hora, required this.duracionMin});
+
+  factory HoraOcupada.fromJson(Map<String, dynamic> json) => HoraOcupada(
+        hora: _str(json['Hora']),
+        duracionMin: _int(json['DuracionEstimadaMin']),
+      );
+}

@@ -82,4 +82,26 @@ class OrdenProvider extends ChangeNotifier {
     }
     notifyListeners();
   }
+
+  /// "Necesito más tiempo": extiende la duración de la orden en curso.
+  /// Devuelve la lista de conflictos detectados con la siguiente cita del
+  /// mismo técnico (vacía = sin choques), o null si la llamada falló (el
+  /// mensaje queda en [error]).
+  Future<List<ConflictoCita>?> extenderDuracion(
+      int id, int minutosAdicionales) async {
+    try {
+      final result = await _service.extenderDuracion(id, minutosAdicionales);
+      _detalle = result.orden;
+      notifyListeners();
+      return result.conflictos;
+    } on ApiException catch (e) {
+      _error = e.message;
+      notifyListeners();
+      return null;
+    } catch (_) {
+      _error = 'No se pudo extender el tiempo de la orden';
+      notifyListeners();
+      return null;
+    }
+  }
 }

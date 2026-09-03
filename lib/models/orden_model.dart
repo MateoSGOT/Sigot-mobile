@@ -97,6 +97,28 @@ class OrdenModel {
       );
 }
 
+/// Cita de otro cliente que quedó en choque de horario con el mismo técnico
+/// después de que la orden en curso pidió más tiempo (ver
+/// OrdenService.extenderDuracion). `notificado` indica si el taller ya le
+/// avisó por correo al cliente afectado.
+class ConflictoCita {
+  final int idAgenda;
+  final String hora;
+  final bool notificado;
+
+  const ConflictoCita({
+    required this.idAgenda,
+    required this.hora,
+    required this.notificado,
+  });
+
+  factory ConflictoCita.fromJson(Map<String, dynamic> json) => ConflictoCita(
+        idAgenda: (json['Id_Agenda'] ?? 0) as int,
+        hora: (json['Hora'] ?? '') as String,
+        notificado: (json['notificado'] ?? false) as bool,
+      );
+}
+
 class ClienteCatalogo {
   final int idCliente;
   final String nombre;

@@ -14,6 +14,7 @@ class PortalProvider extends ChangeNotifier {
   List<PortalOrden> _ordenes = [];
   List<PortalCita> _citas = [];
   List<EmpleadoDisponible> _empleadosDisponibles = [];
+  List<HoraOcupada> _horasOcupadas = [];
 
   LoadState get state => _state;
   String? get error => _error;
@@ -30,6 +31,44 @@ class PortalProvider extends ChangeNotifier {
       _empleadosDisponibles = await _service.getEmpleadosDisponibles(fecha);
       notifyListeners();
     } catch (_) {}
+  }
+
+  /// Franjas ocupadas (citas + novedades por rango horario) del técnico
+  /// elegido en la fecha elegida -- paridad con PortalPage.jsx de la web:
+  /// solo se consulta cuando el cliente elige un técnico específico ("cualquiera
+  /// disponible" no filtra horas, el backend asigna uno libre al agendar).
+  /// Un empleado con una novedad de 9 a 10am y otra de 1pm en adelante queda
+  /// correctamente disponible entre 10am y 1pm -- cada franja se evalúa por
+  /// separado, no se bloquea el día completo por tener alguna novedad.
+  Future<void> loadHorasOcupadas(int idEmpleado, String fecha) async {
+    try {
+      _horasOcupadas = await _service.getHorasOcupadas(idEmpleado, fecha);
+      notifyListeners();
+    } catch (_) {
+      _horasOcupadas = [];
+    }
+  }
+
+  void limpiarHorasOcupadas() {
+    _horasOcupadas = [];
+    notifyListeners();
+  }
+
+  int _toMin(String hhmm) {
+    final p = hhmm.split(':');
+    return int.parse(p[0]) * 60 + int.parse(p[1]);
+  }
+
+  /// Si el slot [hora] (duración fija de 30 min en el selector) choca con
+  /// alguna franja ocupada ya cargada con [loadHorasOcupadas].
+  bool horaBloqueada(String hora) {
+    final ini = _toMin(hora);
+    const duracionSlot = 30;
+    return _horasOcupadas.any((o) {
+      final oIni = _toMin(o.hora);
+      final oFin = oIni + (o.duracionMin > 0 ? o.duracionMin : 60);
+      return ini < oFin && oIni < ini + duracionSlot;
+    });
   }
 
   Future<void> load() async {

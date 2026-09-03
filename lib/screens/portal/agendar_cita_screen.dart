@@ -29,21 +29,33 @@ class _AgendarCitaScreenState extends State<AgendarCitaScreen> {
   }
 
   /// Horas disponibles para la fecha elegida: si es hoy, oculta las que ya
-  /// pasaron (antes se mostraban todas y solo se validaba al enviar).
+  /// pasaron (antes se mostraban todas y solo se validaba al enviar). Si además
+  /// hay un técnico elegido, también oculta las horas ocupadas por una cita o
+  /// una novedad puntual suya (ver PortalProvider.horaBloqueada) -- se evalúa
+  /// en el momento, así que si el técnico queda libre entre dos novedades esa
+  /// franja aparece disponible.
   List<String> get _slots {
     final base = _buildSlots();
-    if (_fecha == null) return base;
-    final ahora = DateTime.now();
-    final esHoy = _fecha!.year == ahora.year &&
-        _fecha!.month == ahora.month &&
-        _fecha!.day == ahora.day;
-    if (!esHoy) return base;
-    return base.where((h) {
-      final p = h.split(':');
-      final slot = DateTime(
-          ahora.year, ahora.month, ahora.day, int.parse(p[0]), int.parse(p[1]));
-      return slot.isAfter(ahora);
-    }).toList();
+    var result = base;
+    if (_fecha != null) {
+      final ahora = DateTime.now();
+      final esHoy = _fecha!.year == ahora.year &&
+          _fecha!.month == ahora.month &&
+          _fecha!.day == ahora.day;
+      if (esHoy) {
+        result = result.where((h) {
+          final p = h.split(':');
+          final slot = DateTime(ahora.year, ahora.month, ahora.day,
+              int.parse(p[0]), int.parse(p[1]));
+          return slot.isAfter(ahora);
+        }).toList();
+      }
+    }
+    if (_idEmpleado != null) {
+      final prov = context.read<PortalProvider>();
+      result = result.where((h) => !prov.horaBloqueada(h)).toList();
+    }
+    return result;
   }
 
   @override
@@ -64,13 +76,31 @@ class _AgendarCitaScreenState extends State<AgendarCitaScreen> {
       lastDate: now.add(const Duration(days: 365)),
     );
     if (d != null) {
+      context.read<PortalProvider>().limpiarHorasOcupadas();
       setState(() {
         _fecha = d;
-        if (_hora != null && !_slots.contains(_hora)) _hora = null;
         _idEmpleado = null;
+        if (_hora != null && !_slots.contains(_hora)) _hora = null;
       });
       context.read<PortalProvider>().loadEmpleadosDisponibles(_fmtFecha(d));
     }
+  }
+
+  Future<void> _onEmpleadoChanged(int? idEmpleado) async {
+    setState(() => _idEmpleado = idEmpleado);
+    if (idEmpleado == null || _fecha == null) {
+      context.read<PortalProvider>().limpiarHorasOcupadas();
+      return;
+    }
+    await context
+        .read<PortalProvider>()
+        .loadHorasOcupadas(idEmpleado, _fmtFecha(_fecha!));
+    if (!mounted) return;
+    // Fuerza el rebuild del selector de hora (que depende de _slots, ahora
+    // con las franjas ocupadas recién cargadas) aunque _hora siga siendo válida.
+    setState(() {
+      if (_hora != null && !_slots.contains(_hora)) _hora = null;
+    });
   }
 
   Future<void> _submit() async {
@@ -202,9 +232,7 @@ class _AgendarCitaScreenState extends State<AgendarCitaScreen> {
                           child: Text(e.nombre),
                         ))
                     .toList(),
-                onChanged: _fecha == null
-                    ? null
-                    : (v) => setState(() => _idEmpleado = v),
+                onChanged: _fecha == null ? null : _onEmpleadoChanged,
               );
             },
           ),

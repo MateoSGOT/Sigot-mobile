@@ -180,8 +180,72 @@ class _OrdenDetailScreenState extends State<OrdenDetailScreen>
                     value: '${o.kilometraje} km'),
             ],
           ),
+          if (o.estadoFlujo == 'En proceso') ...[
+            const SizedBox(height: 12),
+            _buildExtenderTiempoButton(),
+          ],
         ],
       );
+
+  /// Botón "Necesito más tiempo": visible solo mientras la orden está En
+  /// proceso. Deja que el técnico avise desde el taller, sin volver al
+  /// panel web, que el trabajo va a tardar más de lo estimado.
+  Widget _buildExtenderTiempoButton() => SizedBox(
+        width: double.infinity,
+        child: OutlinedButton.icon(
+          onPressed: _abrirDialogoExtenderTiempo,
+          icon: const Icon(Icons.more_time, size: 18),
+          label: const Text('Necesito más tiempo'),
+          style: OutlinedButton.styleFrom(
+            foregroundColor: AppColors.primaryStrong,
+            side: const BorderSide(color: AppColors.primary),
+            padding: const EdgeInsets.symmetric(vertical: 12),
+          ),
+        ),
+      );
+
+  Future<void> _abrirDialogoExtenderTiempo() async {
+    final minutos = await showDialog<int>(
+      context: context,
+      builder: (_) => const _DialogoMinutosAdicionales(),
+    );
+    if (minutos == null || !mounted) return;
+
+    final prov = context.read<OrdenProvider>();
+    final conflictos = await prov.extenderDuracion(widget.idOrden, minutos);
+    if (!mounted) return;
+
+    if (conflictos == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content:
+              Text(prov.error ?? 'No se pudo extender el tiempo de la orden'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+    if (conflictos.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+              'Tiempo extendido en $minutos min. Sin choques con otras citas.'),
+          backgroundColor: AppColors.primary,
+        ),
+      );
+    } else {
+      final horas = conflictos.map((c) => c.hora).join(', ');
+      final avisado = conflictos.any((c) => c.notificado);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+              'Choque con la siguiente cita del técnico ($horas).${avisado ? ' Se avisó al cliente por correo.' : ''}'),
+          backgroundColor: AppColors.badgePendiente,
+          duration: const Duration(seconds: 6),
+        ),
+      );
+    }
+  }
 
   Widget _tabServicios(List<ServicioOrden> servicios) {
     if (servicios.isEmpty) {
@@ -336,4 +400,85 @@ class _OrdenDetailScreenState extends State<OrdenDetailScreen>
           ],
         ),
       );
+}
+
+/// Diálogo para elegir cuántos minutos adicionales necesita el técnico.
+/// Opciones rápidas (15/30/45/60/90/120) más un campo libre por si el
+/// trabajo se complicó más de lo que cubren esos presets.
+class _DialogoMinutosAdicionales extends StatefulWidget {
+  const _DialogoMinutosAdicionales();
+
+  @override
+  State<_DialogoMinutosAdicionales> createState() =>
+      _DialogoMinutosAdicionalesState();
+}
+
+class _DialogoMinutosAdicionalesState
+    extends State<_DialogoMinutosAdicionales> {
+  static const _presets = [15, 30, 45, 60, 90, 120];
+  int? _seleccion = 30;
+  final _customCtrl = TextEditingController();
+
+  @override
+  void dispose() {
+    _customCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('¿Cuánto tiempo más necesitas?'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'El sistema revisará si esto choca con la siguiente cita de tu técnico.',
+            style: TextStyle(color: AppColors.textMuted, fontSize: 13),
+          ),
+          const SizedBox(height: 14),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: _presets
+                .map((m) => ChoiceChip(
+                      label: Text('$m min'),
+                      selected: _seleccion == m,
+                      onSelected: (_) => setState(() {
+                        _seleccion = m;
+                        _customCtrl.clear();
+                      }),
+                    ))
+                .toList(),
+          ),
+          const SizedBox(height: 14),
+          TextField(
+            controller: _customCtrl,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(
+              labelText: 'Otra cantidad (minutos)',
+              isDense: true,
+            ),
+            onChanged: (v) => setState(() => _seleccion = null),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancelar'),
+        ),
+        FilledButton(
+          onPressed: () {
+            final custom = int.tryParse(_customCtrl.text.trim());
+            final minutos = custom ?? _seleccion;
+            if (minutos == null || minutos <= 0) return;
+            Navigator.pop(context, minutos);
+          },
+          child: const Text('Confirmar'),
+        ),
+      ],
+    );
+  }
 }

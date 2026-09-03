@@ -69,4 +69,17 @@ class PortalService {
         .map((e) => EmpleadoDisponible.fromJson(Map<String, dynamic>.from(e)))
         .toList();
   }
+
+  /// Franjas ocupadas del técnico [idEmpleado] en [fecha] (citas + novedades
+  /// con rango horario) -- para filtrar el select de horas sin exponer toda
+  /// la agenda del taller.
+  Future<List<HoraOcupada>> getHorasOcupadas(
+      int idEmpleado, String fecha) async {
+    final res = await _api.get(
+        '${ApiConfig.portalHorasOcupadas}?id_empleado=$idEmpleado&fecha=$fecha');
+    return _asList(res)
+        .whereType<Map>()
+        .map((e) => HoraOcupada.fromJson(Map<String, dynamic>.from(e)))
+        .toList();
+  }
 }

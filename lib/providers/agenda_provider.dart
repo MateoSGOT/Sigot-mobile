@@ -106,15 +106,43 @@ class AgendaProvider extends ChangeNotifier {
     } catch (_) {}
   }
 
-  /// Empleados con una novedad vigente en [ymd] ('yyyy-MM-dd'): no deben
-  /// aparecer como opción para asignarles una cita ese día.
+  /// Empleados con una novedad de DÍA COMPLETO vigente en [ymd]
+  /// ('yyyy-MM-dd'): no deben aparecer como opción para asignarles una cita
+  /// ese día. Una novedad con rango de horas NO excluye al empleado del día
+  /// completo -- deja disponibles las horas fuera de su rango (ver
+  /// [horaBloqueadaPorNovedad]).
   Set<int> empleadosBloqueadosEnFecha(String? ymd) {
     if (ymd == null || ymd.isEmpty) return {};
     return _novedades
-        .where((n) => n.cubreFecha(ymd))
+        .where((n) => n.cubreFecha(ymd) && n.esDiaCompleto)
         .map((n) => n.idEmpleado)
         .whereType<int>()
         .toSet();
+  }
+
+  int _toMin(String hhmm) {
+    final p = hhmm.split(':');
+    return int.parse(p[0]) * 60 + int.parse(p[1]);
+  }
+
+  /// Si el slot [hora] (con duración [duracionMin]) choca con alguna novedad
+  /// POR RANGO del empleado [idEmpleado] en [ymd]. Cada novedad se evalúa por
+  /// separado, así que un empleado con novedad 9-10am y otra 1pm-fin de
+  /// jornada queda disponible entre 10am y 1pm.
+  bool horaBloqueadaPorNovedad(int? idEmpleado, String? ymd, String hora,
+      {int duracionMin = 60}) {
+    if (idEmpleado == null || ymd == null || ymd.isEmpty) return false;
+    final ini = _toMin(hora);
+    final fin = ini + duracionMin;
+    return _novedades.where((n) {
+      return n.idEmpleado == idEmpleado &&
+          n.cubreFecha(ymd) &&
+          !n.esDiaCompleto;
+    }).any((n) {
+      final nIni = _toMin(n.horaInicio!);
+      final nFin = _toMin(n.horaFin!);
+      return ini < nFin && nIni < fin;
+    });
   }
 
   Future<bool> crearCita(Map<String, dynamic> body) async {

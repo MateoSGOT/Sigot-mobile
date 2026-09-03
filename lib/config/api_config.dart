@@ -27,6 +27,7 @@ class ApiConfig {
   static const String portalPerfil = '/api/portal/perfil';
   static const String portalEmpleadosDisponibles =
       '/api/portal/empleados-disponibles';
+  static const String portalHorasOcupadas = '/api/portal/horas-ocupadas';
 
   static const String tokenKey = 'sigot_token';
   static const String empleadoKey = 'sigot_empleado';
